@@ -480,8 +480,8 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 
 <!-- NEW BITE -->
 <div class="modal-overlay" id="new-bite-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
+  <div class="modal" id="new-bite-modal-inner">
+    <div class="modal-handle" id="nb-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
     <div class="modal-head"><div class="modal-title">Нова покльовка</div></div>
     <div class="modal-body">
       <div class="field">
@@ -1463,22 +1463,31 @@ function renderSessSpots(){
   let html=`
     <div style="margin-bottom:12px">
       <div class="settings-title">Відстань між кілочками (м)</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px" id="peg-dist-chips">
-        ${[4,5].map(v=>`<button onclick="setPegDist(${v})" class="chip${sessPegDist===v?' active':''}" style="padding:5px 12px;font-size:12px">${v}м</button>`).join('')}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px" id="peg-dist-chips">
+        ${[4,5].map(v=>`<button onclick="setPegDist(${v})" class="chip${sessPegDist===v?' active':''}" style="padding:10px 24px;font-size:15px">${v}м</button>`).join('')}
       </div>
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:8px">
-      <div class="settings-title" style="margin-bottom:6px">Нерозподілені вудилища</div>
-      <div class="unassigned-pool" id="unassigned-pool" ondragover="event.preventDefault();this.classList.add('drag-over-spot')" ondragleave="this.classList.remove('drag-over-spot')" ondrop="dropRodToUnassigned(event)">
-        ${unassigned.map(r=>`<div class="spot-rod-chip" draggable="true" ondragstart="dragRodStart(event,${r},'unassigned')"  >Вуд.${r}</div>`).join('')}
-        ${unassigned.length===0?`<span style="font-size:11px;color:var(--text3)">Всі вудилища розподілені</span>`:''}
+      <div class="settings-title" style="margin-bottom:8px">Нерозподілені вудилища <span style="font-size:10px;color:var(--text3);font-weight:400">(утримуй і тягни до точки)</span></div>
+      <div class="unassigned-pool" id="unassigned-pool"
+        ondragover="event.preventDefault();this.classList.add('drag-over-spot')"
+        ondragleave="this.classList.remove('drag-over-spot')"
+        ondrop="dropRodToUnassigned(event)"
+        ontouchover="return false">
+        ${unassigned.map(r=>`<div class="spot-rod-chip" draggable="true"
+          ondragstart="dragRodStart(event,${r},'unassigned')"
+          ontouchstart="touchRodStart(event,${r},'unassigned')"
+          ontouchmove="touchRodMove(event)"
+          ontouchend="touchRodEnd(event)"
+          style="padding:12px 20px;font-size:15px;min-width:72px;justify-content:center">Вуд.${r}</div>`).join('')}
+        ${unassigned.length===0?`<span style="font-size:13px;color:var(--text3)">Всі вудилища розподілені</span>`:''}
       </div>
     </div>
     <div class="divider"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div class="settings-title" style="margin-bottom:0">Точки лову</div>
-      <button onclick="addSpot()" style="background:var(--gold);border:none;border-radius:var(--r2);padding:5px 12px;color:#0d1117;font-weight:600;font-size:11px;cursor:pointer;font-family:Inter,sans-serif">+ Додати</button>
+      <button onclick="addSpot()" style="background:var(--gold);border:none;border-radius:var(--r2);padding:8px 16px;color:#0d1117;font-weight:600;font-size:13px;cursor:pointer;font-family:Inter,sans-serif">+ Додати</button>
     </div>
   `;
 
@@ -1492,10 +1501,21 @@ function renderSessSpots(){
         <button onclick="toggleSpot(${si})" style="background:transparent;border:1px solid var(--border2);border-radius:5px;padding:3px 7px;font-size:10px;color:${spot.active===false?'var(--gold)':'var(--text3)'};cursor:pointer;font-family:Inter,sans-serif">${spot.active===false?'↩ Активувати':'Деактив.'}</button>
         <button onclick="delSpot(${si})" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px">×</button>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Перетягни вудилища:</div>
-      <div class="spot-rods" data-si="${si}" ondragover="event.preventDefault();this.classList.add('drag-over-spot')" ondragleave="this.classList.remove('drag-over-spot')" ondrop="dropRodToSpot(event,${si})">
-        ${(spot.rods||[]).map(r=>`<div class="spot-rod-chip" draggable="true" ondragstart="dragRodStart(event,${r},${si})">Вуд.${r}</div>`).join('')}
-        ${!(spot.rods||[]).length?`<span style="font-size:10px;color:var(--text3)">порожньо</span>`:''}
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Перетягни вудилища:</div>
+      <div class="spot-rods" data-si="${si}"
+        ondragover="event.preventDefault();this.classList.add('drag-over-spot')"
+        ondragleave="this.classList.remove('drag-over-spot')"
+        ondrop="dropRodToSpot(event,${si})"
+        ontouchmove="touchRodMove(event)"
+        ontouchend="touchRodEndToSpot(event,${si})"
+        style="min-height:48px;padding:8px">
+        ${(spot.rods||[]).map(r=>`<div class="spot-rod-chip" draggable="true"
+          ondragstart="dragRodStart(event,${r},${si})"
+          ontouchstart="touchRodStart(event,${r},${si})"
+          ontouchmove="touchRodMove(event)"
+          ontouchend="touchRodEnd(event)"
+          style="padding:10px 18px;font-size:14px;min-width:68px;justify-content:center">Вуд.${r}</div>`).join('')}
+        ${!(spot.rods||[]).length?`<span style="font-size:12px;color:var(--text3)">порожньо — перетягни сюди</span>`:''}
       </div>
     </div>`;
   });
@@ -1508,39 +1528,89 @@ function renderSessSpots(){
 }
 
 let dragRodNum=null,dragRodFrom=null;
+let touchDragEl=null,touchDragClone=null;
+
 function dragRodStart(e,rodNum,fromSi){
   dragRodNum=rodNum;dragRodFrom=fromSi;
   e.dataTransfer.effectAllowed='move';
 }
-function dropRodToSpot(e,toSi){
-  e.preventDefault();
-  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
-  if(dragRodNum===null)return;
-  // remove from source
-  if(dragRodFrom==='unassigned'){
-    // already not in any spot
-  } else {
-    const src=sessSpots[dragRodFrom];
-    if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
-  }
-  // add to target spot
-  if(!sessSpots[toSi].rods)sessSpots[toSi].rods=[];
-  if(!sessSpots[toSi].rods.includes(dragRodNum))sessSpots[toSi].rods.push(dragRodNum);
-  dragRodNum=null;dragRodFrom=null;
-  saveSessSpots();
-  renderSessSpots();
+
+function touchRodStart(e,rodNum,fromSi){
+  dragRodNum=rodNum;dragRodFrom=fromSi;
+  touchDragEl=e.currentTarget;
+  const rect=touchDragEl.getBoundingClientRect();
+  touchDragClone=touchDragEl.cloneNode(true);
+  touchDragClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:.8;z-index:9999;pointer-events:none;transition:none`;
+  document.body.appendChild(touchDragClone);
+  touchDragEl.style.opacity='.3';
 }
-function dropRodToUnassigned(e){
+function touchRodMove(e){
+  if(!touchDragClone)return;
   e.preventDefault();
-  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  const t=e.touches[0];
+  touchDragClone.style.left=(t.clientX-40)+'px';
+  touchDragClone.style.top=(t.clientY-20)+'px';
+  // highlight drop targets
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>{
+    const r=el.getBoundingClientRect();
+    const over=t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom;
+    el.classList.toggle('drag-over-spot',over);
+  });
+}
+function touchRodEnd(e){
+  if(!touchDragClone)return;
+  if(touchDragEl)touchDragEl.style.opacity='';
+  touchDragClone.remove();touchDragClone=null;
+  const t=e.changedTouches[0];
+  // find drop target
+  let dropped=false;
+  document.querySelectorAll('.spot-rods').forEach(el=>{
+    el.classList.remove('drag-over-spot');
+    const r=el.getBoundingClientRect();
+    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      const toSi=parseInt(el.dataset.si);
+      _doDropToSpot(toSi);
+      dropped=true;
+    }
+  });
+  const pool=document.getElementById('unassigned-pool');
+  if(pool){
+    pool.classList.remove('drag-over-spot');
+    const r=pool.getBoundingClientRect();
+    if(!dropped&&t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      _doDropToUnassigned();dropped=true;
+    }
+  }
+  dragRodNum=null;dragRodFrom=null;touchDragEl=null;
+}
+function touchRodEndToSpot(e,toSi){
+  // handled by touchRodEnd via coordinates
+}
+function _doDropToSpot(toSi){
   if(dragRodNum===null)return;
   if(dragRodFrom!=='unassigned'){
     const src=sessSpots[dragRodFrom];
     if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
   }
-  dragRodNum=null;dragRodFrom=null;
-  saveSessSpots();
-  renderSessSpots();
+  if(!sessSpots[toSi].rods)sessSpots[toSi].rods=[];
+  if(!sessSpots[toSi].rods.includes(dragRodNum))sessSpots[toSi].rods.push(dragRodNum);
+  saveSessSpots();renderSessSpots();
+}
+function _doDropToUnassigned(){
+  if(dragRodNum===null||dragRodFrom==='unassigned')return;
+  const src=sessSpots[dragRodFrom];
+  if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
+  saveSessSpots();renderSessSpots();
+}
+function dropRodToSpot(e,toSi){
+  e.preventDefault();
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  _doDropToSpot(toSi);
+}
+function dropRodToUnassigned(e){
+  e.preventDefault();
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  _doDropToUnassigned();
 }
 function addSpot(){
   const n=sessSpots.length+1;
@@ -1660,13 +1730,26 @@ document.addEventListener('touchstart',e=>{
 
 // DELETE BITE
 async function deleteBite(id){
+  if(!confirm('Видалити цю покльовку?'))return;
+  // instantly remove from DOM
   const wrap=document.getElementById('bcw-'+id);
-  if(wrap){wrap.style.opacity='.4';wrap.style.pointerEvents='none';}
-  const {error}=await sb.from('bites').delete().eq('id',id);
-  if(error){toast('Помилка видалення');if(wrap){wrap.style.opacity='';wrap.style.pointerEvents='';}return;}
+  if(wrap){wrap.style.transition='opacity .2s';wrap.style.opacity='0';setTimeout(()=>wrap.remove(),200);}
+  // remove from local bites array immediately
+  bites=bites.filter(b=>b.id!==id);
+  // update summary counters
+  const totalW=bites.reduce((s,b)=>s+(b.weight||0),0);
+  const maxB=bites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
+  const cntEl=document.querySelector('.summary-card:nth-child(1) .summary-num');
+  const wEl=document.querySelector('.summary-card:nth-child(2) .summary-num');
+  const mEl=document.querySelector('.summary-card:nth-child(3) .summary-num');
+  if(cntEl)cntEl.textContent=bites.length;
+  if(wEl)wEl.textContent=totalW.toFixed(1);
+  if(mEl)mEl.textContent=maxB?maxB.weight.toFixed(1):'—';
+  const lblEl=document.querySelector('.section-label span');
+  if(lblEl)lblEl.textContent=bites.length;
+  // delete from DB in background
+  await sb.from('bites').delete().eq('id',id);
   toast('✓ Покльовку видалено');
-  await loadBites(activeSess.id);
-  renderSession();
 }
 
 // EDIT BITE
@@ -1709,6 +1792,44 @@ function editBite(id){
     if(mb)mb.scrollTop=0;
   },50);
 }
+
+// ===== SWIPE DOWN TO CLOSE NEW BITE MODAL =====
+(function(){
+  let startY=0,isDragging=false;
+  document.addEventListener('DOMContentLoaded',()=>{});
+  function initHandleDrag(){
+    const handle=document.getElementById('nb-handle');
+    const inner=document.getElementById('new-bite-modal-inner');
+    if(!handle||!inner)return;
+    handle.addEventListener('touchstart',e=>{
+      startY=e.touches[0].clientY;isDragging=true;
+      inner.style.transition='none';
+    },{passive:true});
+    handle.addEventListener('touchmove',e=>{
+      if(!isDragging)return;
+      const dy=Math.max(0,e.touches[0].clientY-startY);
+      inner.style.transform=`translateY(${dy}px)`;
+    },{passive:true});
+    handle.addEventListener('touchend',e=>{
+      if(!isDragging)return;
+      isDragging=false;
+      const dy=e.changedTouches[0].clientY-startY;
+      inner.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';
+      if(dy>80){
+        inner.style.transform=`translateY(100%)`;
+        setTimeout(()=>{
+          closeModal('new-bite-modal');
+          inner.style.transform='';inner.style.transition='';
+        },300);
+      } else {
+        inner.style.transform='';
+        setTimeout(()=>inner.style.transition='',300);
+      }
+    },{passive:true});
+  }
+  // init after a tick so DOM is ready
+  setTimeout(initHandleDrag,500);
+})();
 
 // STATS
 let statsMode='all'; // 'all' | 'session'
