@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Darina Fish">
+<title>Darina_Fish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--surface:#21262d;--surface2:#2d333b;
+  --border:#30363d;--border2:#444c56;
+  --gold:#c9a84c;--gold2:#e8c97a;--gold3:#f5dfa0;
+  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
+  --green:#2ea043;--red:#f85149;--orange:#e3742f;
+  --accent:#c9a84c;
+  --r:10px;--r2:6px;--r3:16px
+}
+/* Custom background image */
+body.has-bg-image #app{background-image:var(--app-bg-image);background-size:cover;background-position:center;background-attachment:fixed}
+body.has-bg-image .header{background:rgba(22,27,34,.85);backdrop-filter:blur(12px)}
+body.has-bg-image .content{background:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
+
+/* ===== LAYOUT ===== */
+#app{height:100dvh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
+
+/* ===== AUTH ===== */
+#auth-screen{
+  position:fixed;inset:0;z-index:1000;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;
+}
+.auth-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:42px;font-weight:600;
+  color:var(--gold2);
+  letter-spacing:2px;
+  margin-bottom:4px;
+  text-align:center;
+}
+.auth-sub{font-size:12px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-bottom:48px}
+/* autocomplete */
+.autocomplete-wrap{position:relative}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--gold);border-top:none;border-radius:0 0 var(--r2) var(--r2);z-index:100;max-height:180px;overflow-y:auto;display:none}
+.autocomplete-list.open{display:block}
+.autocomplete-item{padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border)}
+.autocomplete-item:last-child{border-bottom:none}
+.autocomplete-item:active,.autocomplete-item:hover{background:rgba(201,168,76,.12);color:var(--gold)}
+.auth-box{width:100%;max-width:340px}
+.auth-tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:3px;margin-bottom:20px}
+.auth-tab{flex:1;padding:8px;border:none;background:transparent;color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-radius:7px;transition:.2s}
+.auth-tab.active{background:var(--gold);color:#0d1117;font-weight:600}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:11px 14px;
+  color:var(--text);font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;transition:.2s;-webkit-appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.field select option{background:var(--bg2)}
+.field textarea{resize:none;height:70px;line-height:1.5}
+.btn-gold{
+  width:100%;background:var(--gold);color:#0d1117;
+  border:none;border-radius:var(--r);padding:13px;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:.15s;letter-spacing:.3px;
+}
+.btn-gold:active{transform:scale(.97);background:var(--gold2)}
+.btn-gold:disabled{opacity:.5;pointer-events:none}
+.auth-err{color:var(--red);font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+.auth-link-btn{display:block;width:100%;background:transparent;border:none;color:var(--text3);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;text-align:center;padding:4px;text-decoration:underline;text-underline-offset:3px}
+
+/* ===== HEADER ===== */
+.header{
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px 0;
+  flex-shrink:0;
+  position:relative;
+  z-index:10;
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.app-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2);letter-spacing:1px}
+.header-right{display:flex;align-items:center;gap:8px}
+.icon-btn{background:transparent;border:1px solid var(--border);border-radius:var(--r2);padding:6px 10px;color:var(--text2);font-size:12px;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
+.icon-btn:active{background:var(--surface);color:var(--text)}
+
+.nav{display:flex;gap:2px;padding-bottom:0}
+.nav-btn{
+  flex:1;padding:9px 4px 10px;border:none;background:transparent;
+  color:var(--text3);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;
+  cursor:pointer;transition:.2s;border-bottom:2px solid transparent;
+  letter-spacing:.3px;
+}
+.nav-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ===== CONTENT ===== */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:80px}
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+/* ===== CARDS / SECTIONS ===== */
+.section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between}
+.section-label span{color:var(--gold);font-weight:500;font-size:11px;letter-spacing:0}
+
+/* ===== SESSION CARD ===== */
+.session-card{
+  background:rgba(22,27,34,.7);border:1px solid rgba(48,54,61,.9);
+  border-radius:var(--r3);margin-bottom:10px;overflow:hidden;
+  cursor:pointer;transition:.15s;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 3px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.session-card:active{transform:scale(.98)}
+.session-card-bg{
+  height:90px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1a2744 0%,#0d1b2a 100%);
+}
+.session-card-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(13,17,23,0) 0%,rgba(13,17,23,.7) 100%);
+}
+.session-card-bg-text{
+  position:absolute;bottom:10px;left:14px;z-index:1;
+  font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;
+  color:rgba(201,168,76,.6);letter-spacing:1px;line-height:1;
+}
+.session-card-body{padding:12px 14px}
+.session-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.session-card-title{font-size:15px;font-weight:600;color:var(--text)}
+.session-card-sector{font-size:12px;color:var(--text2);margin-top:1px}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.5px}
+.badge-active{background:rgba(46,160,67,.15);color:var(--green);border:1px solid rgba(46,160,67,.3)}
+.badge-done{background:var(--surface);color:var(--text3);border:1px solid var(--border)}
+.badge-warn{background:rgba(227,116,47,.12);color:var(--orange);border:1px solid rgba(227,116,47,.3)}
+.session-card-meta{display:flex;gap:12px;flex-wrap:wrap}
+.session-meta-item{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px}
+.session-meta-item strong{color:var(--text);font-weight:600}
+
+/* ===== TIMER ===== */
+.timer-block{
+  background:linear-gradient(135deg,rgba(26,39,68,.75) 0%,rgba(13,27,42,.75) 100%);
+  border:1px solid rgba(201,168,76,.3);border-radius:var(--r3);
+  padding:16px;margin-bottom:14px;position:relative;overflow:hidden;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 4px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.timer-block::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,.08) 0%,transparent 70%);
+}
+.timer-lake{font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.timer-sector{font-size:13px;color:var(--text2);margin-bottom:12px}
+.timer-digits{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:600;color:var(--gold2);letter-spacing:2px;line-height:1}
+.timer-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+.timer-progress{height:3px;background:var(--surface2);border-radius:2px;margin-top:12px;overflow:hidden}
+.timer-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width 1s linear}
+
+/* ===== WEATHER ===== */
+.weather-strip{
+  display:flex;gap:8px;align-items:center;
+  background:rgba(22,27,34,.7);border:1px solid rgba(48,54,61,.8);
+  border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 2px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.weather-icon{font-size:22px}
+.weather-info{flex:1}
+.weather-main{font-size:14px;font-weight:600;color:var(--text)}
+.weather-sub{font-size:11px;color:var(--text2)}
+.weather-extra{display:flex;gap:12px;margin-left:auto}
+.weather-extra-item{text-align:center}
+.weather-extra-val{font-size:13px;font-weight:600;color:var(--text)}
+.weather-extra-lbl{font-size:9px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+
+/* ===== BITES LIST ===== */
+.bites-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.summary-card{
+  background:rgba(22,27,34,.65);border:1px solid rgba(48,54,61,.9);
+  border-radius:var(--r);padding:10px;text-align:center;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 2px 10px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.summary-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold2);line-height:1}
+.summary-lbl{font-size:9px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-top:2px}
+
+.bite-card{
+  border-radius:var(--r);margin-bottom:8px;overflow:hidden;
+  position:relative;cursor:pointer;min-height:90px;
+  border:1px solid rgba(48,54,61,.8);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 3px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.bite-card-bg{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(15,31,53,.7) 0%,rgba(26,42,26,.6) 50%,rgba(13,17,23,.65) 100%);
+}
+.bite-card-overlay{position:absolute;inset:0;background:rgba(13,17,23,.45)}
+.bite-card-content{position:relative;z-index:1;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.bite-fish-col{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:48px}
+.bite-fish-weight{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#e8453c;line-height:1;text-shadow:0 0 12px rgba(232,69,60,.35)}
+.bite-fish-kg{font-size:9px;color:rgba(232,69,60,.7);letter-spacing:.5px}
+.bite-fish-name{font-size:9px;color:var(--text2);text-align:center;line-height:1.2;margin-top:2px}
+.bite-divider{width:1px;background:var(--border2);align-self:stretch;flex-shrink:0}
+.bite-details{flex:1;min-width:0}
+.bite-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.bite-tag{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:2px 7px;font-size:10px;color:var(--gold);font-weight:500}
+.bite-tag-neutral{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:10px;color:var(--text2)}
+.bite-time{font-size:11px;color:var(--text3);margin-top:4px}
+.bite-notes{font-size:11px;color:var(--text2);margin-top:4px;font-style:italic;opacity:.8}
+/* Tiny valid/unwanted indicator top-left */
+.bite-valid-icon{position:absolute;top:6px;left:8px;z-index:3;font-size:10px;line-height:1;font-weight:700}
+.bite-valid-icon.valid{color:#2ea043}
+.bite-valid-icon.invalid{color:#f85149}
+/* Distance badge bottom-right */
+.bite-dist-badge{
+  position:absolute;bottom:8px;right:8px;z-index:2;
+  background:rgba(99,176,255,.13);border:1px solid rgba(99,176,255,.3);
+  border-radius:6px;padding:3px 8px;
+  font-size:11px;font-weight:600;color:#63b0ff;letter-spacing:.3px;
+}
+.unwanted-badge{display:none}/* hide old badge, replaced by tiny icon */
+
+/* ===== FAB ===== */
+.fab{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:#0d1117;border:none;
+  border-radius:28px;padding:14px 32px;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;box-shadow:0 4px 24px rgba(201,168,76,.35);
+  display:flex;align-items:center;gap:8px;
+  transition:.15s;white-space:nowrap;z-index:50;
+  max-width:calc(430px - 32px);
+}
+.fab:active{transform:translateX(-50%) scale(.96)}
+.fab.hidden{display:none}
+
+/* ===== MODALS ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:200;display:none;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border-radius:20px 20px 0 0;
+  width:100%;max-width:430px;
+  border-top:1px solid var(--border);
+  max-height:92dvh;display:flex;flex-direction:column;
+}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 0}
+.modal-head{padding:12px 20px 0;flex-shrink:0}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2);margin-bottom:14px}
+.modal-body{overflow-y:auto;padding:0 20px 20px;-webkit-overflow-scrolling:touch}
+.modal-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid var(--border)}
+
+.seg{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:3px;gap:3px;margin-bottom:14px}
+.seg-btn{flex:1;padding:8px 4px;border:none;background:transparent;color:var(--text3);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border-radius:5px;transition:.15s;text-align:center}
+.seg-btn.active{background:var(--gold);color:#0d1117;font-weight:600}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+.chip-group{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{padding:7px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:.15s;background:transparent;font-family:'Inter',sans-serif}
+.chip:active{transform:scale(.95)}
+.chip.active{background:var(--gold);color:#0d1117;border-color:var(--gold);font-weight:600}
+
+.rod-chips{display:flex;gap:8px}
+.rod-chip{flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--r2);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;background:transparent;text-align:center;font-family:'Inter',sans-serif}
+.rod-chip.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold)}
+
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+.cancel-btn{width:100%;background:transparent;border:none;color:var(--text3);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;padding:8px;text-align:center}
+
+/* ===== STATS ===== */
+.stat-bar-row{margin-bottom:10px}
+.stat-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.stat-bar-label span:first-child{color:var(--text2)}
+.stat-bar-label span:last-child{color:var(--gold);font-weight:600}
+.stat-bar-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.stat-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px}
+
+/* ===== SETTINGS ===== */
+.settings-section{margin-bottom:20px}
+.settings-title{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.settings-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.settings-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text)}
+.settings-tag-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:0}
+.settings-add{display:flex;gap:8px;align-items:center}
+.settings-add input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none}
+.settings-add input:focus{border-color:var(--gold)}
+.settings-add button{background:var(--gold);border:none;border-radius:var(--r2);padding:8px 14px;color:#0d1117;font-weight:600;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+
+/* ===== EMPTY ===== */
+.empty-state{text-align:center;padding:48px 20px}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.5}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:12px;color:var(--text3);line-height:1.6}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);padding:10px 20px;border-radius:20px;
+  font-size:13px;font-weight:500;z-index:500;
+  opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1}
+
+/* ===== SCROLLBAR ===== */
+.content::-webkit-scrollbar,.modal-body::-webkit-scrollbar{width:0}
+
+/* ===== COLOR SWATCH ===== */
+.color-chip{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:.15s;background:transparent;font-family:'Inter',sans-serif;font-size:12px;color:var(--text2)}
+.color-chip.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08)}
+.color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">Darina_Fish</div>
+  <div class="auth-sub">Короповий щоденник</div>
+  <div class="auth-box">
+
+    <!-- Вхід -->
+    <div id="auth-step-login">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Вхід</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Реєстрація</button>
+      </div>
+      <div class="field"><label>Email</label><input type="email" id="a-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="field"><label>Пароль</label><input type="password" id="a-pass" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="field" id="nick-field" style="display:none"><label>Нікнейм</label><input type="text" id="a-nick" placeholder="Як тебе звати?"></div>
+      <button class="btn-gold" id="a-btn" onclick="doAuth()">Увійти</button>
+      <div class="auth-err" id="a-err"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="header-top">
+      <div class="app-name">Darina_Fish <span id="header-nick" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);font-weight:400;letter-spacing:0;margin-left:4px"></span></div>
+      <div class="header-right">
+        <button class="icon-btn" onclick="openModal('settings-modal')">⚙ Налаштування</button>
+        <button class="icon-btn" onclick="doLogout()">Вийти</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="nav-btn active" onclick="goPage('home')">Сесії</button>
+      <button class="nav-btn" onclick="goPage('session')" id="nav-session" style="display:none">▶ Активна</button>
+      <button class="nav-btn" onclick="goPage('stats')">Статистика</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- HOME PAGE -->
+    <div class="page active" id="page-home">
+      <div id="home-content"><div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Завантаження...</div></div></div>
+    </div>
+
+    <!-- SESSION PAGE -->
+    <div class="page" id="page-session">
+      <div id="session-content"></div>
+    </div>
+
+    <!-- STATS PAGE -->
+    <div class="page" id="page-stats">
+      <div id="stats-content"></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab" onclick="onFab()">＋ <span id="fab-label">Нова сесія</span></button>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- NEW SESSION -->
+<div class="modal-overlay" id="new-session-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">Нова сесія</div></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Водойма</label>
+        <select id="ns-lake"></select>
+      </div>
+      <div class="field"><label>Сектор</label><input type="text" id="ns-sector" placeholder="Напр. 7, А3, Правий берег..."></div>
+      <div class="field">
+        <label>Кількість вудилищ</label>
+        <div class="rod-chips" id="ns-rods">
+          <button class="rod-chip" onclick="selRod(1)">1</button>
+          <button class="rod-chip active" onclick="selRod(2)">2</button>
+          <button class="rod-chip" onclick="selRod(3)">3</button>
+          <button class="rod-chip" onclick="selRod(4)">4</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Оснастка</label>
+        <div class="seg" id="ns-rig">
+          <button class="seg-btn active" onclick="selSeg('ns-rig',this)">Метод флет</button>
+          <button class="seg-btn" onclick="selSeg('ns-rig',this)">Класика</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Кормова програма (смак)</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="ns-bait" placeholder="Напр. Krill + Tiger Nut mix..." autocomplete="off" oninput="onBaitInput(this)">
+          <div class="autocomplete-list" id="bait-ac"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Тривалість сесії</label>
+        <div class="seg" id="ns-dur">
+          <button class="seg-btn active" onclick="selSeg('ns-dur',this)">Денна</button>
+          <button class="seg-btn" onclick="selSeg('ns-dur',this)">Доба</button>
+          <button class="seg-btn" onclick="selSeg('ns-dur',this)">Дві доби</button>
+        </div>
+      </div>
+      <div class="field"><label>Дата та час початку</label><input type="datetime-local" id="ns-start"></div>
+      <div class="field"><label>Нотатки (необов'язково)</label><textarea id="ns-notes" placeholder="Будь-які нотатки до сесії..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="ns-btn" onclick="saveSession()">Розпочати сесію</button>
+      <button class="cancel-btn" onclick="closeModal('new-session-modal')">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW BITE -->
+<div class="modal-overlay" id="new-bite-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">Нова покльовка</div></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Вид риби</label>
+        <div class="chip-group" id="nb-fish"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Вага (кг)</label><input type="number" id="nb-weight" placeholder="5.2" step="0.1" min="0"></div>
+        <div class="field"><label>Дистанція (м)</label><input type="number" id="nb-dist" placeholder="60" step="1" min="0"></div>
+      </div>
+      <div class="field">
+        <label>Вудилище</label>
+        <div class="rod-chips" id="nb-rod-chips"></div>
+      </div>
+      <div class="field">
+        <label>Тип насадки</label>
+        <div class="seg" id="nb-bait-type">
+          <button class="seg-btn active" onclick="selBaitType(this,'popup')">Поп-ап</button>
+          <button class="seg-btn" onclick="selBaitType(this,'balance')">Баланс</button>
+          <button class="seg-btn" onclick="selBaitType(this,'boil')">Бойл</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Смак насадки</label>
+        <div class="chip-group" id="nb-flavor"></div>
+      </div>
+      <div id="nb-color-block" class="field">
+        <label>Колір насадки</label>
+        <div class="chip-group" id="nb-color"></div>
+      </div>
+      <div id="nb-size-block" class="field" style="display:none">
+        <label>Розмір бойла</label>
+        <div class="seg" id="nb-size">
+          <button class="seg-btn active" onclick="selSeg('nb-size',this)">16 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size',this)">20 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size',this)">24 мм</button>
+        </div>
+      </div>
+      <div class="field"><label>Час покльовки</label><input type="datetime-local" id="nb-time"></div>
+      <div class="field"><label>Нотатки (необов'язково)</label><textarea id="nb-notes" placeholder="Поведінка риби, особливості..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="nb-btn" onclick="saveBite()">Зберегти покльовку</button>
+      <button class="cancel-btn" onclick="closeModal('new-bite-modal')">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">Налаштування</div></div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <div class="settings-title">Мій нікнейм</div>
+        <div class="settings-add">
+          <input type="text" id="st-nick-input" placeholder="Твій нікнейм">
+          <button onclick="saveNickname()">Зберегти</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px" id="st-nick-msg"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">Озера</div>
+        <div class="settings-tags" id="st-lakes"></div>
+        <div class="settings-add">
+          <input type="text" id="st-lake-input" placeholder="Назва нового озера">
+          <button onclick="addSetting('lakes')">Додати</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">Смаки насадок</div>
+        <div class="settings-tags" id="st-flavors"></div>
+        <div class="settings-add">
+          <input type="text" id="st-flavor-input" placeholder="Новий смак">
+          <button onclick="addSetting('flavors')">Додати</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">Кольори насадок</div>
+        <div class="settings-tags" id="st-colors"></div>
+        <div class="settings-add">
+          <input type="text" id="st-color-input" placeholder="Новий колір">
+          <button onclick="addSetting('colors')">Додати</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">Фото фону</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Обери фото з галереї як фон застосунку</div>
+        <div id="bg-preview" style="display:none;margin-bottom:10px;border-radius:var(--r);overflow:hidden;height:90px;position:relative">
+          <img id="bg-preview-img" style="width:100%;height:100%;object-fit:cover">
+          <button onclick="removeBgPhoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--r);padding:12px 14px;cursor:pointer">
+          <span style="font-size:20px">🖼</span>
+          <span style="font-size:13px;color:var(--text2)">Вибрати фото з галереї</span>
+          <input type="file" id="bg-photo-input" accept="image/*" style="display:none" onchange="onBgPhotoChange(this)">
+        </label>
+      </div>
+        <div id="st-fish" style="margin-bottom:8px"></div>
+        <div class="settings-add">
+          <input type="text" id="st-fish-input" placeholder="Назва нового виду">
+          <button onclick="addFish()">Додати</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" onclick="saveSettings()">Зберегти</button>
+      <button class="cancel-btn" onclick="closeModal('settings-modal')">Закрити</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE SESSION VIEW -->
+<div class="modal-overlay" id="archive-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title" id="archive-modal-title">Сесія</div>
+    </div>
+    <div class="modal-body" id="archive-modal-body"></div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeModal('archive-modal')">Закрити</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL='https://imgzriiglnqazzdmulmo.supabase.co';
+const SB_KEY='sb_publishable_NqB1B4yG_aXf34ilbllFNQ_9YF2yeYv';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+// State
+let user=null,settings=null,sessions=[],activeSess=null,bites=[],timerInt=null;
+let selRodCount=2,curBaitType='popup';
+
+const DUR={Денна:12,Доба:24,'Дві доби':48};
+const UNWANTED=['⚠ Осетер','⚠ Товстолоб','Осетер','Товстолоб'];
+const COLOR_HEX={'Жовтий':'#f0d060','Помаранчевий':'#e07830','Рожевий':'#e060a0','Вимитий жовтий':'#d8c890','Білий':'#f0f0f0','Червоний':'#d03030'};
+
+function toLocalDT(d){
+  const dt=d?new Date(d):new Date();
+  return new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,16);
+}
+function fmtTime(d){return new Date(d).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}
+function fmtDate(d){return new Date(d).toLocaleDateString('uk-UA',{day:'numeric',month:'short'})}
+function fmtDateTime(d){return fmtDate(d)+' '+fmtTime(d)}
+function fmtDur(h){return h===12?'Денна':h===24?'Доба':'Дві доби'}
+
+function toast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// Auth
+let currentAuthTab='login';
+let pendingNick='';
+
+function switchAuthTab(tab){
+  currentAuthTab=tab;
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
+  document.getElementById('nick-field').style.display=tab==='signup'?'':'none';
+  document.getElementById('a-btn').textContent=tab==='login'?'Увійти':'Зареєструватись';
+  document.getElementById('a-pass').autocomplete=tab==='login'?'current-password':'new-password';
+  document.getElementById('a-err').textContent='';
+}
+
+async function doAuth(){
+  const email=document.getElementById('a-email').value.trim();
+  const pass=document.getElementById('a-pass').value;
+  const nick=document.getElementById('a-nick').value.trim();
+  const errEl=document.getElementById('a-err');
+  errEl.style.color='var(--red)';
+  errEl.textContent='';
+  if(!email){errEl.textContent='Введіть email';return}
+  if(!pass||pass.length<6){errEl.textContent='Пароль мінімум 6 символів';return}
+  if(currentAuthTab==='signup'&&!nick){errEl.textContent='Введіть нікнейм';return}
+  const btn=document.getElementById('a-btn');
+  btn.disabled=true;
+  btn.textContent=currentAuthTab==='login'?'Входимо...':'Реєструємо...';
+
+  if(currentAuthTab==='signup'){
+    const {data,error}=await sb.auth.signUp({email,password:pass});
+    btn.disabled=false;
+    btn.textContent='Зареєструватись';
+    if(error){
+      if(error.message.includes('already registered')||error.message.includes('User already registered')){
+        errEl.textContent='Цей email вже зареєстровано. Перейди до входу.';
+      } else {
+        errEl.textContent=error.message;
+      }
+      return;
+    }
+    // зберігаємо нікнейм
+    if(data?.user){
+      await sb.from('profiles').upsert({id:data.user.id,nickname:nick});
+    }
+    // одразу входимо
+  } else {
+    const {error}=await sb.auth.signInWithPassword({email,password:pass});
+    btn.disabled=false;
+    btn.textContent='Увійти';
+    if(error){
+      if(error.message.includes('Invalid login')||error.message.includes('invalid_credentials')){
+        errEl.textContent='Невірний email або пароль';
+      } else if(error.message.includes('Email not confirmed')){
+        errEl.textContent='Спочатку підтверди email (або вимкни підтвердження в Supabase)';
+      } else {
+        errEl.textContent=error.message;
+      }
+    }
+  }
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// Init
+let appStarted=false;
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    await onLogin(session.user);
+    return;
+  }
+  sb.auth.onAuthStateChange(async(event,s)=>{
+    if(event==='SIGNED_IN'&&s){
+      await onLogin(s.user);
+    }
+    if(event==='SIGNED_OUT'){
+      appStarted=false;
+      user=null;
+    }
+  });
+}
+
+async function onLogin(u){
+  if(appStarted)return;
+  appStarted=true;
+  user=u;
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  // показуємо одразу щоб не було вічної загрузки
+  document.getElementById('home-content').innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Завантаження...</div></div>`;
+  try{
+    const {data:profile}=await sb.from('profiles').select('nickname').eq('id',u.id).single();
+    if(profile?.nickname){
+      document.getElementById('header-nick').textContent='· '+profile.nickname;
+    }
+  }catch(e){}
+  try{await loadSettings();}catch(e){console.log('settings err',e)}
+  try{await loadSessions();}catch(e){console.log('sessions err',e)}
+  renderHome();
+}
+
+// Settings
+async function loadSettings(){
+  const {data}=await sb.from('user_settings').select('*').eq('user_id',user.id).single();
+  const defaultFish=[
+    {name:'Короп',unwanted:false},{name:'Дзеркальний',unwanted:false},
+    {name:'Амур',unwanted:false},{name:'Осетер',unwanted:true},
+    {name:'Товстолоб',unwanted:true},{name:'Інше',unwanted:false}
+  ];
+  if(data){
+    settings=data;
+    // migrate: якщо fish_types ще немає — додати дефолт
+    if(!settings.fish_types||!Array.isArray(settings.fish_types)||settings.fish_types.length===0){
+      settings.fish_types=defaultFish;
+      await sb.from('user_settings').update({fish_types:defaultFish}).eq('user_id',user.id);
+    }
+  } else {
+    const def={
+      user_id:user.id,
+      flavors:['Krill','Halibut','Tiger Nut','Belachan','Squid & Bloodworm','Strawberry & Salmon','Sweet Corn','Mulberry','Scopex','Robin Red'],
+      colors:['Жовтий','Помаранчевий','Рожевий','Вимитий жовтий','Білий','Червоний'],
+      lakes:['Кунка','Вовкове','Торфяне','Картар','Трофейне','Солтанівка','Карпич'],
+      fish_types:defaultFish
+    };
+    const {data:ins}=await sb.from('user_settings').insert(def).select().single();
+    settings=ins||def;
+  }
+}
+async function saveSettings(){
+  await sb.from('user_settings').upsert({...settings,updated_at:new Date().toISOString()});
+  toast('✓ Налаштування збережено');
+  closeModal('settings-modal');
+}
+async function saveNickname(){
+  const nick=document.getElementById('st-nick-input').value.trim();
+  const msg=document.getElementById('st-nick-msg');
+  if(!nick){msg.style.color='var(--red)';msg.textContent='Введіть нікнейм';return}
+  await sb.from('profiles').upsert({id:user.id,nickname:nick});
+  document.getElementById('header-nick').textContent='· '+nick;
+  msg.style.color='var(--gold)';
+  msg.textContent='✓ Нікнейм збережено';
+  setTimeout(()=>msg.textContent='',2000);
+}
+
+function renderSettingsModal(){
+  ['lakes','flavors','colors'].forEach(key=>{
+    const el=document.getElementById('st-'+key);
+    el.innerHTML='';
+    (settings[key]||[]).forEach((v,i)=>{
+      const t=document.createElement('div');
+      t.className='settings-tag';
+      t.innerHTML=`${v}<button class="settings-tag-del" onclick="delSetting('${key}',${i})">×</button>`;
+      el.appendChild(t);
+    });
+  });
+  // fish types
+  const fishEl=document.getElementById('st-fish');
+  fishEl.innerHTML='';
+  const fishList=settings.fish_types||[];
+  fishList.forEach((f,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)';
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:var(--text)">${f.name}</span>
+        ${f.unwanted?`<span style="font-size:10px;color:var(--red);background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.25);border-radius:4px;padding:1px 6px">небажана</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="toggleFishUnwanted(${i})" style="background:transparent;border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--text2);cursor:pointer;font-family:Inter,sans-serif">
+          ${f.unwanted?'✓ небажана':'небажана?'}
+        </button>
+        <button onclick="delFish(${i})" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px">×</button>
+      </div>
+    `;
+    fishEl.appendChild(row);
+  });
+}
+function delSetting(key,i){settings[key].splice(i,1);renderSettingsModal()}
+function addSetting(key){
+  const inp=document.getElementById('st-'+key.slice(0,-1)+'-input')||document.getElementById('st-'+key+'-input');
+  const v=(inp?.value||'').trim();
+  if(!v)return;
+  if(!settings[key].includes(v))settings[key].push(v);
+  inp.value='';
+  renderSettingsModal();
+}
+function delFish(i){settings.fish_types.splice(i,1);renderSettingsModal()}
+function toggleFishUnwanted(i){settings.fish_types[i].unwanted=!settings.fish_types[i].unwanted;renderSettingsModal()}
+function addFish(){
+  const inp=document.getElementById('st-fish-input');
+  const v=(inp?.value||'').trim();
+  if(!v)return;
+  if(!settings.fish_types)settings.fish_types=[];
+  if(!settings.fish_types.find(f=>f.name===v))settings.fish_types.push({name:v,unwanted:false});
+  inp.value='';
+  renderSettingsModal();
+}
+
+// Data
+async function loadSessions(){
+  const {data}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
+  sessions=data||[];
+  activeSess=sessions.find(s=>s.is_active)||null;
+  if(activeSess){
+    document.getElementById('nav-session').style.display='';
+    await loadBites(activeSess.id);
+  } else {
+    document.getElementById('nav-session').style.display='none';
+    bites=[];
+  }
+}
+async function loadBites(sid){
+  const {data}=await sb.from('bites').select('*').eq('session_id',sid).order('bitten_at',{ascending:true});
+  bites=data||[];
+}
+
+// Navigation
+function goPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const idx={home:0,session:1,stats:2};
+  document.querySelectorAll('.nav-btn')[idx[p]]?.classList.add('active');
+  const fab=document.getElementById('fab');
+  const lbl=document.getElementById('fab-label');
+  if(p==='home'){fab.classList.remove('hidden');lbl.textContent='Нова сесія'}
+  else if(p==='session'&&activeSess){fab.classList.remove('hidden');lbl.textContent='Покльовка'}
+  else{fab.classList.add('hidden')}
+  if(p==='session')renderSession();
+  if(p==='stats')renderStats();
+}
+function onFab(){
+  const active=document.querySelector('.page.active');
+  if(active?.id==='page-session')openNewBite();
+  else openNewSession();
+}
+
+// HOME
+async function renderHome(){
+  const el=document.getElementById('home-content');
+  if(!sessions.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Ще немає сесій</div><div class="empty-sub">Натисни "+ Нова сесія"<br>щоб розпочати першу рибалку</div></div>`;
+    return;
+  }
+  // load weight totals for all sessions
+  const {data:allBites}=await sb.from('bites').select('session_id,weight').eq('user_id',user.id);
+  const weightMap={};
+  (allBites||[]).forEach(b=>{weightMap[b.session_id]=(weightMap[b.session_id]||0)+(b.weight||0)});
+  const countMap={};
+  (allBites||[]).forEach(b=>{countMap[b.session_id]=(countMap[b.session_id]||0)+1});
+
+  let html='';
+  if(activeSess){
+    html+=`<div class="section-label" style="margin-bottom:10px">Активна сесія <span>в процесі</span></div>`;
+    html+=sessionCardHTML(activeSess,true,weightMap,countMap);
+    const archived=sessions.filter(s=>!s.is_active);
+    if(archived.length){html+=`<div class="section-label" style="margin:16px 0 10px">Архів <span>${archived.length} сесій</span></div>`;archived.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap)})}
+  } else {
+    html+=`<div class="section-label" style="margin-bottom:10px">Всі сесії <span>${sessions.length}</span></div>`;
+    sessions.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap)});
+  }
+  el.innerHTML=html;
+}
+
+function sessionCardHTML(s,active,weightMap={},countMap={}){
+  const started=new Date(s.started_at);
+  const ends=new Date(s.ends_at);
+  const now=new Date();
+  const over=now>ends&&active;
+  const badge=active?(over?`<span class="badge badge-warn">Час вийшов</span>`:`<span class="badge badge-active">● Активна</span>`):`<span class="badge badge-done">Завершена</span>`;
+  const click=active?`onclick="goPage('session')"`:
+    `onclick="openArchiveSession('${s.id}')"`
+  const kg=(weightMap[s.id]||0).toFixed(1);
+  const cnt=countMap[s.id]||0;
+  const archivedKg=!active&&cnt>0?`<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">· ${kg} кг · ${cnt} покл.</span>`:'';
+  return `<div class="session-card" ${click}>
+    <div class="session-card-bg"><div class="session-card-bg-text">${s.lake_name||''}</div></div>
+    <div class="session-card-body">
+      <div class="session-card-top">
+        <div>
+          <div class="session-card-title">${s.lake_name||'Водойма'}${archivedKg}</div>
+          <div class="session-card-sector">Сектор ${s.sector||'—'}</div>
+        </div>
+        ${badge}
+      </div>
+      <div class="session-card-meta">
+        <div class="session-meta-item">📅 <strong>${fmtDate(s.started_at)}</strong></div>
+        <div class="session-meta-item">⏱ <strong>${fmtDur(s.duration_hours)}</strong></div>
+        <div class="session-meta-item">🎣 <strong>${s.rods} вуд.</strong></div>
+        ${s.bait_program?`<div class="session-meta-item">🌿 ${s.bait_program}</div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// SESSION PAGE
+function renderSession(){
+  if(!activeSess){document.getElementById('session-content').innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Немає активної сесії</div></div>`;return}
+  startTimer();
+  const weather=activeSess.weather;
+  let weatherHtml='';
+  if(weather&&weather.temp!==undefined){
+    const icons={'Clear':'☀️','Clouds':'☁️','Rain':'🌧','Drizzle':'🌦','Thunderstorm':'⛈','Snow':'❄️','Mist':'🌫','Fog':'🌫'};
+    const ico=icons[weather.main]||'🌤';
+    weatherHtml=`<div class="weather-strip">
+      <div class="weather-icon">${ico}</div>
+      <div class="weather-info">
+        <div class="weather-main">${Math.round(weather.temp)}°C · ${weather.desc||''}</div>
+        <div class="weather-sub">Відчувається ${Math.round(weather.feels||weather.temp)}°C</div>
+      </div>
+      <div class="weather-extra">
+        <div class="weather-extra-item"><div class="weather-extra-val">${weather.wind||0} м/с</div><div class="weather-extra-lbl">Вітер</div></div>
+        <div class="weather-extra-item"><div class="weather-extra-val">${weather.humidity||0}%</div><div class="weather-extra-lbl">Волог.</div></div>
+      </div>
+    </div>`;
+  }
+  const totalW=bites.reduce((s,b)=>s+(b.weight||0),0);
+  const maxB=bites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
+  let bitesHtml='';
+  if(!bites.length){
+    bitesHtml=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon" style="font-size:32px">🐟</div><div class="empty-title" style="font-size:16px">Покльовок ще немає</div><div class="empty-sub">Натисни "+ Покльовка"</div></div>`;
+  } else {
+    bites.forEach(b=>{bitesHtml+=biteCardHTML(b)});
+  }
+  document.getElementById('session-content').innerHTML=`
+    <div id="timer-block" class="timer-block">
+      <div class="timer-lake">${activeSess.lake_name}</div>
+      <div class="timer-sector">Сектор ${activeSess.sector||'—'} · ${activeSess.rods} вуд. · ${activeSess.rig||''}</div>
+      <div class="timer-digits" id="timer-digits">--:--:--</div>
+      <div class="timer-label">Залишилось</div>
+      <div class="timer-progress"><div class="timer-progress-fill" id="timer-fill" style="width:0%"></div></div>
+    </div>
+    ${weatherHtml}
+    <div class="bites-summary">
+      <div class="summary-card"><div class="summary-num">${bites.length}</div><div class="summary-lbl">Покльовок</div></div>
+      <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
+      <div class="summary-card"><div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div><div class="summary-lbl">Рекорд кг</div></div>
+    </div>
+    <div class="section-label">Покльовки <span>${bites.length}</span></div>
+    ${bitesHtml}
+    <div style="height:10px"></div>
+    <button onclick="endSession()" style="width:100%;background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:11px;color:var(--text3);font-family:Inter,sans-serif;font-size:13px;cursor:pointer;margin-top:4px">Завершити сесію</button>
+  `;
+  updateTimer();
+}
+
+function biteCardHTML(b){
+  const fishObj=(settings?.fish_types||[]).find(f=>f.name===b.fish_type);
+  const uw=fishObj?fishObj.unwanted:UNWANTED.includes(b.fish_type);
+  const baitStr=[b.bait_type,b.bait_flavor,b.bait_color,b.bait_size].filter(Boolean).join(' · ');
+  const validIcon=uw
+    ? `<span class="bite-valid-icon invalid">✕</span>`
+    : `<span class="bite-valid-icon valid">✓</span>`;
+  const distBadge=b.distance_m
+    ? `<div class="bite-dist-badge">${b.distance_m} м.</div>`
+    : '';
+  return `<div class="bite-card">
+    <div class="bite-card-bg"></div>
+    <div class="bite-card-overlay"></div>
+    ${validIcon}
+    <button onclick="copyBite(${JSON.stringify(b).replace(/"/g,'&quot;')})" style="position:absolute;top:7px;right:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;padding:3px 8px;color:var(--gold);font-size:13px;cursor:pointer;z-index:2;line-height:1">⧉</button>
+    <div class="bite-card-content">
+      <div class="bite-fish-col">
+        <div class="bite-fish-weight">${b.weight||'—'}</div>
+        <div class="bite-fish-kg">кг</div>
+        <div class="bite-fish-name">${b.fish_type}</div>
+      </div>
+      <div class="bite-divider"></div>
+      <div class="bite-details">
+        <div class="bite-row">
+          ${b.rod_number?`<span class="bite-tag">Вуд. ${b.rod_number}</span>`:''}
+          ${uw?`<span style="font-size:10px;color:var(--red)">Небажана</span>`:''}
+        </div>
+        ${baitStr?`<div class="bite-row"><span class="bite-tag-neutral" style="font-size:11px">${baitStr}</span></div>`:''}
+        <div class="bite-time">${fmtDateTime(b.bitten_at)}</div>
+        ${b.notes?`<div class="bite-notes">${b.notes}</div>`:''}
+      </div>
+    </div>
+    ${distBadge}
+  </div>`;
+}
+
+// TIMER
+function startTimer(){
+  if(timerInt)clearInterval(timerInt);
+  timerInt=setInterval(updateTimer,1000);
+  updateTimer();
+}
+function updateTimer(){
+  if(!activeSess)return;
+  const el=document.getElementById('timer-digits');
+  const fill=document.getElementById('timer-fill');
+  if(!el)return;
+  const now=new Date();
+  const ends=new Date(activeSess.ends_at);
+  const starts=new Date(activeSess.started_at);
+  const total=ends-starts;
+  const left=ends-now;
+  if(left<=0){el.textContent='00:00';if(fill)fill.style.width='100%';return}
+  const pct=Math.round((1-left/total)*100);
+  if(fill)fill.style.width=pct+'%';
+  const h=Math.floor(left/3600000);
+  const m=Math.floor((left%3600000)/60000);
+  el.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+// WEATHER
+async function fetchWeather(){
+  try{
+    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
+    const {latitude:lat,longitude:lon}=pos.coords;
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto`);
+    const d=await r.json();
+    const c=d.current;
+    const wc=c.weather_code;
+    let main='Clear',desc='Ясно';
+    if(wc>=80){main='Rain';desc='Злива'}
+    else if(wc>=70){main='Snow';desc='Сніг'}
+    else if(wc>=60){main='Rain';desc='Дощ'}
+    else if(wc>=50){main='Drizzle';desc='Мряка'}
+    else if(wc>=30){main='Thunderstorm';desc='Гроза'}
+    else if(wc>=10){main='Clouds';desc='Хмарно'}
+    return{temp:c.temperature_2m,feels:c.apparent_temperature,humidity:c.relative_humidity_2m,wind:Math.round(c.wind_speed_10m/3.6),main,desc};
+  }catch{return null}
+}
+
+// NEW SESSION MODAL
+function openNewSession(){
+  if(activeSess){toast('⚠ Спочатку завершіть поточну сесію');return}
+  const sel=document.getElementById('ns-lake');
+  sel.innerHTML=(settings?.lakes||[]).map(l=>`<option>${l}</option>`).join('');
+  document.getElementById('ns-start').value=toLocalDT();
+  document.getElementById('ns-sector').value='';
+  document.getElementById('ns-bait').value='';
+  document.getElementById('ns-notes').value='';
+  selRod(2);
+  openModal('new-session-modal');
+}
+
+async function saveSession(){
+  const lake=document.getElementById('ns-lake').value;
+  const sector=document.getElementById('ns-sector').value.trim();
+  const baitProg=document.getElementById('ns-bait').value.trim();
+  const notes=document.getElementById('ns-notes').value.trim();
+  const startVal=document.getElementById('ns-start').value;
+  if(!lake){toast('Оберіть водойму');return}
+  const rigEl=document.querySelector('#ns-rig .seg-btn.active');
+  const durEl=document.querySelector('#ns-dur .seg-btn.active');
+  const rig=rigEl?.textContent||'Метод флет';
+  const durH=DUR[durEl?.textContent]||24;
+  const startedAt=startVal?new Date(startVal).toISOString():new Date().toISOString();
+  const endsAt=new Date(new Date(startedAt).getTime()+durH*3600000).toISOString();
+  const btn=document.getElementById('ns-btn');
+  btn.disabled=true;btn.textContent='Збереження...';
+  const weather=await fetchWeather();
+  const {error}=await sb.from('sessions').insert({
+    user_id:user.id,lake_name:lake,sector,rods:selRodCount,
+    rig,bait_program:baitProg,duration_hours:durH,
+    started_at:startedAt,ends_at:endsAt,weather,notes,is_active:true
+  });
+  btn.disabled=false;btn.textContent='Розпочати сесію';
+  if(error){toast('Помилка: '+error.message);return}
+  closeModal('new-session-modal');
+  toast('✓ Сесію розпочато!');
+  await loadSessions();
+  renderHome();
+  document.querySelector('.content').scrollTop=0;
+  document.getElementById('nav-session').style.display='';
+  goPage('session');
+}
+
+async function endSession(){
+  if(!confirm('Завершити поточну сесію?'))return;
+  await sb.from('sessions').update({is_active:false}).eq('id',activeSess.id);
+  if(timerInt)clearInterval(timerInt);
+  toast('✓ Сесію завершено');
+  await loadSessions();
+  renderHome();
+  goPage('home');
+}
+
+async function openArchiveSession(sessId){
+  const sess=sessions.find(s=>s.id===sessId);
+  if(!sess)return;
+  const {data:sessB}=await sb.from('bites').select('*').eq('session_id',sessId).order('bitten_at',{ascending:false});
+  const sb_bites=sessB||[];
+  const totalW=sb_bites.reduce((s,b)=>s+(b.weight||0),0);
+  const maxB=sb_bites.reduce((a,b)=>(!a||(b.weight||0)>(a.weight||0))?b:a,null);
+
+  document.getElementById('archive-modal-title').textContent=`${sess.lake_name} · Сектор ${sess.sector||'—'}`;
+
+  const weather=sess.weather;
+  let weatherHtml='';
+  if(weather&&weather.temp!==undefined){
+    const icons={'Clear':'☀️','Clouds':'☁️','Rain':'🌧','Drizzle':'🌦','Thunderstorm':'⛈','Snow':'❄️','Mist':'🌫','Fog':'🌫'};
+    const ico=icons[weather.main]||'🌤';
+    weatherHtml=`<div class="weather-strip" style="margin-bottom:14px">
+      <div class="weather-icon">${ico}</div>
+      <div class="weather-info">
+        <div class="weather-main">${Math.round(weather.temp)}°C · ${weather.desc||''}</div>
+        <div class="weather-sub">Вітер ${weather.wind||0} м/с · Вологість ${weather.humidity||0}%</div>
+      </div>
+    </div>`;
+  }
+
+  let bitesHtml='';
+  if(!sb_bites.length){
+    bitesHtml=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Покльовок не було</div>`;
+  } else {
+    sb_bites.forEach(b=>{bitesHtml+=biteCardHTML(b)});
+  }
+
+  document.getElementById('archive-modal-body').innerHTML=`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <span class="session-meta-item">📅 <strong>${fmtDate(sess.started_at)}</strong></span>
+        <span class="session-meta-item">⏱ <strong>${fmtDur(sess.duration_hours)}</strong></span>
+        <span class="session-meta-item">🎣 <strong>${sess.rods} вуд.</strong></span>
+        ${sess.rig?`<span class="session-meta-item">🪝 <strong>${sess.rig}</strong></span>`:''}
+        ${sess.bait_program?`<span class="session-meta-item">🌿 ${sess.bait_program}</span>`:''}
+      </div>
+    </div>
+    ${weatherHtml}
+    <div class="bites-summary" style="margin-bottom:14px">
+      <div class="summary-card"><div class="summary-num">${sb_bites.length}</div><div class="summary-lbl">Покльовок</div></div>
+      <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
+      <div class="summary-card"><div class="summary-num">${maxB?(maxB.weight||'—'):'—'}</div><div class="summary-lbl">Рекорд кг</div></div>
+    </div>
+    <div class="section-label" style="margin-bottom:10px">Покльовки <span>${sb_bites.length}</span></div>
+    ${bitesHtml}
+    <div style="height:8px"></div>
+  `;
+  openModal('archive-modal');
+}
+
+// NEW BITE MODAL
+function openNewBite(){
+  if(!activeSess){toast('Немає активної сесії');return}
+  document.getElementById('nb-weight').value='';
+  document.getElementById('nb-dist').value='';
+  document.getElementById('nb-notes').value='';
+  document.getElementById('nb-time').value=toLocalDT();
+  // build fish chips from settings
+  buildFishChips();
+  // rods
+  buildRodChips();
+  // bait
+  curBaitType='popup';
+  document.querySelectorAll('#nb-bait-type .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  buildFlavorChips();
+  buildColorChips();
+  document.getElementById('nb-size-block').style.display='none';
+  document.getElementById('nb-color-block').style.display='';
+  openModal('new-bite-modal');
+}
+
+function buildFishChips(){
+  const c=document.getElementById('nb-fish');
+  c.innerHTML='';
+  const fishList=settings?.fish_types||[
+    {name:'Короп',unwanted:false},{name:'Дзеркальний',unwanted:false},
+    {name:'Амур',unwanted:false},{name:'Осетер',unwanted:true},
+    {name:'Товстолоб',unwanted:true},{name:'Інше',unwanted:false}
+  ];
+  fishList.forEach((f,i)=>{
+    const b=document.createElement('button');
+    b.className='chip'+(i===0?' active':'');
+    b.textContent=f.unwanted?`⚠ ${f.name}`:f.name;
+    b.dataset.fishName=f.name;
+    b.dataset.unwanted=f.unwanted?'1':'0';
+    b.onclick=()=>selChip('nb-fish',b);
+    c.appendChild(b);
+  });
+}
+
+function buildRodChips(){
+  const c=document.getElementById('nb-rod-chips');
+  c.innerHTML='';
+  for(let i=1;i<=activeSess.rods;i++){
+    const b=document.createElement('button');
+    b.className='rod-chip'+(i===1?' active':'');
+    b.textContent=i;
+    b.onclick=()=>{document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(x=>x.classList.remove('active'));b.classList.add('active')};
+    c.appendChild(b);
+  }
+}
+
+function buildFlavorChips(){
+  const c=document.getElementById('nb-flavor');
+  c.innerHTML='';
+  (settings?.flavors||[]).forEach((f,i)=>{
+    const b=document.createElement('button');
+    b.className='chip'+(i===0?' active':'');
+    b.textContent=f;
+    b.onclick=()=>selChip('nb-flavor',b);
+    c.appendChild(b);
+  });
+}
+
+function buildColorChips(){
+  const c=document.getElementById('nb-color');
+  c.innerHTML='';
+  (settings?.colors||[]).forEach((col,i)=>{
+    const hex=COLOR_HEX[col]||'#888';
+    const b=document.createElement('button');
+    b.className='color-chip'+(i===0?' active':'');
+    b.innerHTML=`<span class="color-dot" style="background:${hex}"></span>${col}`;
+    b.onclick=()=>{document.querySelectorAll('#nb-color .color-chip').forEach(x=>x.classList.remove('active'));b.classList.add('active')};
+    c.appendChild(b);
+  });
+}
+
+function selBaitType(btn,type){
+  curBaitType=type;
+  selSeg('nb-bait-type',btn);
+  document.getElementById('nb-color-block').style.display=type==='boil'?'none':'';
+  document.getElementById('nb-size-block').style.display=type==='boil'?'':'none';
+}
+
+async function saveBite(){
+  const fishEl=document.querySelector('#nb-fish .chip.active');
+  const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
+  const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
+  const weight=parseFloat(document.getElementById('nb-weight').value)||null;
+  const dist=parseFloat(document.getElementById('nb-dist').value)||null;
+  const rodEl=document.querySelector('#nb-rod-chips .rod-chip.active');
+  const rod=rodEl?parseInt(rodEl.textContent):null;
+  const flavorEl=document.querySelector('#nb-flavor .chip.active');
+  const flavor=flavorEl?.textContent||null;
+  const colorEl=document.querySelector('#nb-color .color-chip.active');
+  const colorText=colorEl?.textContent?.trim()||null;
+  const sizeEl=document.querySelector('#nb-size .seg-btn.active');
+  const size=curBaitType==='boil'?(sizeEl?.textContent||null):null;
+  const timeVal=document.getElementById('nb-time').value;
+  const notes=document.getElementById('nb-notes').value.trim();
+  const baitTypeLabel={'popup':'Поп-ап','balance':'Баланс','boil':'Бойл'}[curBaitType];
+  const btn=document.getElementById('nb-btn');
+  btn.disabled=true;btn.textContent='Збереження...';
+  const {error}=await sb.from('bites').insert({
+    user_id:user.id,session_id:activeSess.id,
+    fish_type:fish,weight,distance_m:dist,rod_number:rod,
+    bait_type:baitTypeLabel,bait_flavor:flavor,bait_color:colorText,bait_size:size,
+    notes,is_unwanted:isUnwanted,
+    bitten_at:timeVal?new Date(timeVal).toISOString():new Date().toISOString()
+  });
+  btn.disabled=false;btn.textContent='Зберегти покльовку';
+  if(error){toast('Помилка: '+error.message);return}
+  closeModal('new-bite-modal');
+  toast(isUnwanted?'⚠ Небажана риба зафіксована':'✓ Покльовку збережено!');
+  await loadBites(activeSess.id);
+  const contentEl=document.querySelector('.content');
+  contentEl.scrollTop=contentEl.scrollHeight;
+  renderSession();
+}
+
+// STATS
+let statsMode='all'; // 'all' | 'session'
+let statsSessionId=null;
+
+async function renderStats(){
+  const el=document.getElementById('stats-content');
+  const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
+  if(!allSess?.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Ще немає даних</div><div class="empty-sub">Статистика з'явиться<br>після першої покльовки</div></div>`;
+    return;
+  }
+  // build session selector options
+  const sessOptions=allSess.map(s=>`<option value="${s.id}" ${s.id===statsSessionId?'selected':''}>${s.lake_name} · сект. ${s.sector||'—'} · ${fmtDate(s.started_at)}</option>`).join('');
+  if(!statsSessionId)statsSessionId=allSess[0].id;
+
+  // switcher HTML — rendered first so user sees it immediately
+  const switcherHtml=`
+    <div class="seg" style="margin-bottom:14px" id="stats-mode-seg">
+      <button class="seg-btn ${statsMode==='all'?'active':''}" onclick="setStatsMode('all')">Загальна</button>
+      <button class="seg-btn ${statsMode==='session'?'active':''}" onclick="setStatsMode('session')">По сесії</button>
+    </div>
+    <div id="stats-sess-select" style="display:${statsMode==='session'?'block':'none'};margin-bottom:14px">
+      <select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px;color:var(--text);font-family:Inter,sans-serif;font-size:13px;outline:none;-webkit-appearance:none" onchange="onStatsSessChange(this.value)">
+        ${sessOptions}
+      </select>
+    </div>
+    <div id="stats-body"></div>
+  `;
+  el.innerHTML=switcherHtml;
+
+  await renderStatsBody();
+}
+
+function setStatsMode(mode){
+  statsMode=mode;
+  document.querySelectorAll('#stats-mode-seg .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===(mode==='all'?0:1)));
+  document.getElementById('stats-sess-select').style.display=mode==='session'?'block':'none';
+  renderStatsBody();
+}
+
+async function onStatsSessChange(id){
+  statsSessionId=id;
+  renderStatsBody();
+}
+
+async function renderStatsBody(){
+  const el=document.getElementById('stats-body');
+  if(!el)return;
+  el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Завантаження...</div>`;
+
+  let query=sb.from('bites').select('*,sessions(lake_name,sector)').eq('user_id',user.id);
+  if(statsMode==='session'&&statsSessionId){
+    query=query.eq('session_id',statsSessionId);
+  }
+  const {data:biteData}=await query.order('bitten_at',{ascending:false});
+
+  if(!biteData?.length){
+    el.innerHTML=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon">🎣</div><div class="empty-title" style="font-size:16px">Покльовок немає</div></div>`;
+    return;
+  }
+
+  // session info block (only in session mode)
+  let sessInfoHtml='';
+  if(statsMode==='session'&&statsSessionId){
+    const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
+    const sess=allSess?.find(s=>s.id===statsSessionId);
+    if(sess){
+      sessInfoHtml=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.5px;margin-bottom:6px">${sess.lake_name} · Сектор ${sess.sector||'—'}</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text2)">📅 ${fmtDate(sess.started_at)}</span>
+          <span style="font-size:11px;color:var(--text2)">⏱ ${fmtDur(sess.duration_hours)}</span>
+          <span style="font-size:11px;color:var(--text2)">🎣 ${sess.rods} вуд.</span>
+          ${sess.rig?`<span style="font-size:11px;color:var(--text2)">🪝 ${sess.rig}</span>`:''}
+          ${sess.bait_program?`<span style="font-size:11px;color:var(--text2)">🌿 ${sess.bait_program}</span>`:''}
+        </div>
+      </div>`;
+    }
+  }
+
+  const totalW=biteData.reduce((s,b)=>s+(b.weight||0),0);
+  const maxB=biteData.reduce((a,b)=>(!a||(b.weight||0)>(a.weight||0))?b:a,null);
+  const withWeight=biteData.filter(b=>b.weight);
+  const avgW=withWeight.length?totalW/withWeight.length:0;
+
+  // fish
+  const fishMap={};biteData.forEach(b=>{fishMap[b.fish_type]=(fishMap[b.fish_type]||0)+1});
+  const fishSorted=Object.entries(fishMap).sort((a,b)=>b[1]-a[1]);
+  const maxFish=fishSorted[0]?.[1]||1;
+  // rod
+  const rodMap={};biteData.forEach(b=>{if(b.rod_number)rodMap['Вудилище '+b.rod_number]=(rodMap['Вудилище '+b.rod_number]||0)+1});
+  const rodSorted=Object.entries(rodMap).sort((a,b)=>b[1]-a[1]);
+  const maxRod=rodSorted[0]?.[1]||1;
+  // bait
+  const baitMap={};biteData.forEach(b=>{if(b.bait_flavor){const k=b.bait_flavor+(b.bait_color?' / '+b.bait_color:'');baitMap[k]=(baitMap[k]||0)+1}});
+  const baitSorted=Object.entries(baitMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxBait=baitSorted[0]?.[1]||1;
+  // lake (only in 'all' mode)
+  const lakeMap={};biteData.forEach(b=>{const l=b.sessions?.lake_name;if(l)lakeMap[l]=(lakeMap[l]||0)+1});
+  const lakeSorted=Object.entries(lakeMap).sort((a,b)=>b[1]-a[1]);
+  const maxLake=lakeSorted[0]?.[1]||1;
+  // hourly
+  const hourMap=Array(24).fill(0);biteData.forEach(b=>{hourMap[new Date(b.bitten_at).getHours()]++});
+  const maxHour=Math.max(...hourMap)||1;
+  const hourBars=hourMap.map((v,h)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">
+    <div style="height:${Math.round(v/maxHour*40)}px;min-height:${v?2:0}px;background:var(--gold);border-radius:2px;width:100%;max-width:12px;margin:0 auto"></div>
+    <div style="font-size:8px;color:var(--text3)">${h%3===0?h:''}</div>
+  </div>`).join('');
+
+  el.innerHTML=`
+    ${sessInfoHtml}
+    <div class="bites-summary">
+      <div class="summary-card"><div class="summary-num">${biteData.length}</div><div class="summary-lbl">Покльовок</div></div>
+      <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
+      <div class="summary-card"><div class="summary-num">${avgW?avgW.toFixed(1):'—'}</div><div class="summary-lbl">Сер. вага</div></div>
+    </div>
+    ${maxB?`<div style="background:linear-gradient(135deg,#1a2744,#0d1b2a);border:1px solid rgba(201,168,76,.25);border-radius:var(--r);padding:14px;margin-bottom:14px">
+      <div style="font-size:10px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:4px">🏆 Рекорд${statsMode==='all'?' (всі сесії)':''}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2)">${maxB.fish_type} · ${maxB.weight||'?'} кг</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDateTime(maxB.bitten_at)}${statsMode==='all'?' · '+(maxB.sessions?.lake_name||''):''}</div>
+    </div>`:''}
+    <div class="section-label" style="margin-bottom:10px">Активність по годинах</div>
+    <div style="display:flex;align-items:flex-end;gap:1px;height:60px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px">${hourBars}</div>
+    <div class="section-label" style="margin-bottom:10px">Рейтинг риби</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      ${fishSorted.map(([f,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${f}</span><span>${c} шт</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxFish*100)}%"></div></div></div>`).join('')}
+    </div>
+    ${rodSorted.length?`<div class="section-label" style="margin-bottom:10px">Рейтинг вудилищ</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      ${rodSorted.map(([r,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${r}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxRod*100)}%"></div></div></div>`).join('')}
+    </div>`:''}
+    ${baitSorted.length?`<div class="section-label" style="margin-bottom:10px">Топ насадки</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      ${baitSorted.map(([b,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${b}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxBait*100)}%"></div></div></div>`).join('')}
+    </div>`:''}
+    ${statsMode==='all'&&lakeSorted.length?`<div class="section-label" style="margin-bottom:10px">Рейтинг озер</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      ${lakeSorted.map(([l,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${l}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxLake*100)}%"></div></div></div>`).join('')}
+    </div>`:''}
+    <div style="height:20px"></div>
+  `;
+}
+
+// COPY BITE
+let copyBiteData=null;
+function copyBite(b){
+  copyBiteData=b;
+  // pre-fill modal with copied data
+  openNewBite();
+  // after modal opens, fill fields and scroll to top
+  setTimeout(()=>{
+    // fish - rebuild chips first then select by name
+    buildFishChips();
+    document.querySelectorAll('#nb-fish .chip').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.fishName===b.fish_type||btn.textContent===b.fish_type);
+    });
+    if(b.weight)document.getElementById('nb-weight').value=b.weight;
+    if(b.distance_m)document.getElementById('nb-dist').value=b.distance_m;
+    // rod
+    const rodBtns=document.querySelectorAll('#nb-rod-chips .rod-chip');
+    rodBtns.forEach(btn=>btn.classList.toggle('active',parseInt(btn.textContent)===b.rod_number));
+    // bait type
+    const typeMap={'Поп-ап':'popup','Баланс':'balance','Бойл':'boil'};
+    const bType=typeMap[b.bait_type]||'popup';
+    curBaitType=bType;
+    const baitBtns=document.querySelectorAll('#nb-bait-type .seg-btn');
+    baitBtns.forEach((btn,i)=>btn.classList.toggle('active',['popup','balance','boil'][i]===bType));
+    document.getElementById('nb-color-block').style.display=bType==='boil'?'none':'';
+    document.getElementById('nb-size-block').style.display=bType==='boil'?'':'none';
+    // flavor
+    buildFlavorChips();
+    if(b.bait_flavor){
+      document.querySelectorAll('#nb-flavor .chip').forEach(btn=>{
+        btn.classList.toggle('active',btn.textContent===b.bait_flavor);
+      });
+    }
+    // color
+    buildColorChips();
+    if(b.bait_color){
+      document.querySelectorAll('#nb-color .color-chip').forEach(btn=>{
+        const txt=btn.textContent.trim();
+        btn.classList.toggle('active',txt===b.bait_color);
+      });
+    }
+    // size
+    if(b.bait_size){
+      document.querySelectorAll('#nb-size .seg-btn').forEach(btn=>{
+        btn.classList.toggle('active',btn.textContent===b.bait_size);
+      });
+    }
+    // time — set to now
+    document.getElementById('nb-time').value=toLocalDT();
+    if(b.notes)document.getElementById('nb-notes').value=b.notes;
+    // scroll modal to top
+    const mb=document.querySelector('#new-bite-modal .modal-body');
+    if(mb)mb.scrollTop=0;
+  },50);
+}
+
+// AUTOCOMPLETE for bait program
+const BOUNTY_FLAVORS=['Krill','Halibut','Tiger Nut','Belachan','Squid & Bloodworm','Strawberry & Salmon','Sweet Corn','Mulberry','Scopex','Robin Red','Black Pepper','Squid','Bloodworm','Salmon','Strawberry'];
+function onBaitInput(inp){
+  const ac=document.getElementById('bait-ac');
+  const q=inp.value.trim().toLowerCase();
+  if(!q){ac.classList.remove('open');return}
+  // search in both BOUNTY_FLAVORS and user settings flavors
+  const pool=[...new Set([...BOUNTY_FLAVORS,...(settings?.flavors||[])])];
+  const matches=pool.filter(f=>f.toLowerCase().includes(q)).slice(0,6);
+  if(!matches.length){ac.classList.remove('open');return}
+  ac.innerHTML=matches.map(f=>`<div class="autocomplete-item" onmousedown="pickBaitAC('${f}')">${f}</div>`).join('');
+  ac.classList.add('open');
+}
+function pickBaitAC(val){
+  const inp=document.getElementById('ns-bait');
+  inp.value=val;
+  document.getElementById('bait-ac').classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.autocomplete-wrap'))document.getElementById('bait-ac')?.classList.remove('open');
+});
+function selRod(n){
+  selRodCount=n;
+  document.querySelectorAll('#ns-rods .rod-chip').forEach((b,i)=>b.classList.toggle('active',i+1===n));
+}
+function selSeg(id,btn){
+  document.querySelectorAll('#'+id+' .seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selChip(groupId,btn){
+  document.querySelectorAll('#'+groupId+' .chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function openModal(id){
+  if(id==='settings-modal'){
+    renderSettingsModal();
+    // підставити поточний нікнейм
+    const cur=document.getElementById('header-nick').textContent.replace('· ','').trim();
+    document.getElementById('st-nick-input').value=cur;
+    document.getElementById('st-nick-msg').textContent='';
+    // show bg preview if set
+    const savedBg=localStorage.getItem('app_bg_photo');
+    const preview=document.getElementById('bg-preview');
+    const previewImg=document.getElementById('bg-preview-img');
+    if(savedBg){preview.style.display='';previewImg.src=savedBg}
+    else{preview.style.display='none'}
+  }
+  document.getElementById(id).classList.add('open');
+}
+function onBgPhotoChange(inp){
+  const file=inp.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const dataUrl=e.target.result;
+    localStorage.setItem('app_bg_photo',dataUrl);
+    applyBgPhoto(dataUrl);
+    const preview=document.getElementById('bg-preview');
+    const previewImg=document.getElementById('bg-preview-img');
+    preview.style.display='';
+    previewImg.src=dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+function removeBgPhoto(){
+  localStorage.removeItem('app_bg_photo');
+  document.body.classList.remove('has-bg-image');
+  document.documentElement.style.removeProperty('--app-bg-image');
+  document.getElementById('bg-preview').style.display='none';
+  document.getElementById('bg-photo-input').value='';
+}
+function applyBgPhoto(dataUrl){
+  document.documentElement.style.setProperty('--app-bg-image',`url('${dataUrl}')`);
+  document.body.classList.add('has-bg-image');
+}
+// Apply saved bg on load
+(function(){const bg=localStorage.getItem('app_bg_photo');if(bg)applyBgPhoto(bg)})();
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+// close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')});
+});
+
+init();
+</script>
+</body>
+</html>
