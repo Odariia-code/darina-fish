@@ -263,7 +263,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 .modal-head{padding:12px 20px 0;flex-shrink:0}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2);margin-bottom:14px}
 .modal-body{overflow-y:auto;padding:0 20px 20px;-webkit-overflow-scrolling:touch}
-.modal-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:0;width:100%}
+.modal-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid var(--border)}
 .modal-footer .btn-gold{width:100%}
 .modal-footer .cancel-btn{width:100%}
 
@@ -1003,7 +1003,7 @@ function renderSession(){
     <div class="bites-summary">
       <div class="summary-card"><div class="summary-num">${bites.length}</div><div class="summary-lbl">Покльовок</div></div>
       <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
-      <div class="summary-card"><div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div><div class="summary-lbl">Рекорд кг</div></div>
+      <div class="summary-card"><div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div><div class="summary-lbl">Big fish кг</div></div>
     </div>
     <div class="section-label">Покльовки <span>${bites.length}</span></div>
     ${bitesHtml}
@@ -1421,10 +1421,15 @@ async function renderStatsBody(){
   const fishMap={};biteData.forEach(b=>{fishMap[b.fish_type]=(fishMap[b.fish_type]||0)+1});
   const fishSorted=Object.entries(fishMap).sort((a,b)=>b[1]-a[1]);
   const maxFish=fishSorted[0]?.[1]||1;
-  // rod
+  // rod (only for session mode)
   const rodMap={};biteData.forEach(b=>{if(b.rod_number)rodMap['Вудилище '+b.rod_number]=(rodMap['Вудилище '+b.rod_number]||0)+1});
   const rodSorted=Object.entries(rodMap).sort((a,b)=>b[1]-a[1]);
   const maxRod=rodSorted[0]?.[1]||1;
+  // distance rating (for session mode)
+  const distArr=biteData.filter(b=>b.distance_m).map(b=>b.distance_m).sort((a,b)=>b-a);
+  const distMap={};biteData.forEach(b=>{if(b.distance_m){const k=b.distance_m+' м.';distMap[k]=(distMap[k]||0)+1}});
+  const distSorted=Object.entries(distMap).sort((a,b)=>b[1]-a[1]);
+  const maxDist=distSorted[0]?.[1]||1;
   // bait
   const baitMap={};biteData.forEach(b=>{if(b.bait_flavor){const k=b.bait_flavor+(b.bait_color?' / '+b.bait_color:'');baitMap[k]=(baitMap[k]||0)+1}});
   const baitSorted=Object.entries(baitMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -1459,9 +1464,9 @@ async function renderStatsBody(){
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
       ${fishSorted.map(([f,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${f}</span><span>${c} шт</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxFish*100)}%"></div></div></div>`).join('')}
     </div>
-    ${rodSorted.length?`<div class="section-label" style="margin-bottom:10px">Рейтинг вудилищ</div>
+    ${statsMode==='session'&&distSorted.length?`<div class="section-label" style="margin-bottom:10px">Рейтинг дистанцій</div>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
-      ${rodSorted.map(([r,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${r}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxRod*100)}%"></div></div></div>`).join('')}
+      ${distSorted.map(([d,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${d}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxDist*100)}%"></div></div></div>`).join('')}
     </div>`:''}
     ${baitSorted.length?`<div class="section-label" style="margin-bottom:10px">Топ насадки</div>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
