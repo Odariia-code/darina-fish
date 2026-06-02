@@ -258,14 +258,18 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
   width:100%;max-width:430px;
   border-top:1px solid var(--border);
   max-height:92dvh;display:flex;flex-direction:column;
+  overflow:hidden;
 }
-.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 0}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 0;flex-shrink:0}
 .modal-head{padding:12px 20px 0;flex-shrink:0}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2);margin-bottom:14px}
-.modal-body{overflow-y:auto;padding:0 20px 20px;-webkit-overflow-scrolling:touch}
-.modal-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid var(--border)}
+.modal-body{overflow-y:auto;overflow-x:hidden;padding:0 20px 20px;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+.modal-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid var(--border);width:100%;background:var(--bg2)}
 .modal-footer .btn-gold{width:100%}
 .modal-footer .cancel-btn{width:100%}
+/* fix settings tags wrapping */
+.settings-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%}
+.settings-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text);cursor:grab;user-select:none;touch-action:none;transition:.15s;max-width:100%;word-break:break-word}
 
 .seg{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:3px;gap:3px;margin-bottom:14px}
 .seg-btn{flex:1;padding:8px 4px;border:none;background:transparent;color:var(--text3);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border-radius:5px;transition:.15s;text-align:center}
@@ -558,16 +562,18 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
           <input type="file" id="bg-photo-input" accept="image/*" style="display:none" onchange="onBgPhotoChange(this)">
         </label>
       </div>
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">Види риб</div>
         <div id="st-fish" style="margin-bottom:8px"></div>
         <div class="settings-add">
           <input type="text" id="st-fish-input" placeholder="Назва нового виду">
           <button onclick="addFish()">Додати</button>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
+      <div style="height:20px"></div>
       <button class="btn-gold" onclick="saveSettings()">Зберегти</button>
-      <button class="cancel-btn" onclick="closeModal('settings-modal')">Закрити</button>
+      <button class="cancel-btn" onclick="closeModal('settings-modal')" style="margin-top:6px;padding-bottom:12px">Закрити</button>
     </div>
   </div>
 </div>
