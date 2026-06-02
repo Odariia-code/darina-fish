@@ -1521,13 +1521,24 @@ function onBgPhotoChange(inp){
   if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
-    const dataUrl=e.target.result;
-    localStorage.setItem('app_bg_photo',dataUrl);
-    applyBgPhoto(dataUrl);
-    const preview=document.getElementById('bg-preview');
-    const previewImg=document.getElementById('bg-preview-img');
-    preview.style.display='';
-    previewImg.src=dataUrl;
+    // compress image via canvas before storing
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const maxW=1080,maxH=1920;
+      let w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW}
+      if(h>maxH){w=Math.round(w*maxH/h);h=maxH}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.82);
+      try{localStorage.setItem('app_bg_photo',dataUrl);}catch(e){console.log('storage full')}
+      applyBgPhoto(dataUrl);
+      const preview=document.getElementById('bg-preview');
+      const previewImg=document.getElementById('bg-preview-img');
+      if(preview&&previewImg){preview.style.display='';previewImg.src=dataUrl}
+    };
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -1535,12 +1546,17 @@ function removeBgPhoto(){
   localStorage.removeItem('app_bg_photo');
   document.body.classList.remove('has-bg-image');
   document.documentElement.style.removeProperty('--app-bg-image');
+  const app=document.getElementById('app');
+  if(app){app.style.backgroundImage='';app.style.backgroundSize='';app.style.backgroundPosition='';}
   document.getElementById('bg-preview').style.display='none';
   document.getElementById('bg-photo-input').value='';
 }
 function applyBgPhoto(dataUrl){
-  document.documentElement.style.setProperty('--app-bg-image',`url('${dataUrl}')`);
+  document.documentElement.style.setProperty('--app-bg-image',`url("${dataUrl}")`);
   document.body.classList.add('has-bg-image');
+  // force repaint
+  const app=document.getElementById('app');
+  if(app){app.style.backgroundImage=`url("${dataUrl}")`;app.style.backgroundSize='cover';app.style.backgroundPosition='center';}
 }
 // Apply saved bg on load
 (function(){const bg=localStorage.getItem('app_bg_photo');if(bg)applyBgPhoto(bg)})();
