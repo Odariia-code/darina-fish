@@ -490,11 +490,20 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
         <div class="chip-group" id="nb-color"></div>
       </div>
       <div id="nb-size-block" class="field" style="display:none">
-        <label>Розмір бойла</label>
+        <label>Розмір насадки</label>
         <div class="seg" id="nb-size">
-          <button class="seg-btn active" onclick="selSeg('nb-size',this)">16 мм</button>
-          <button class="seg-btn" onclick="selSeg('nb-size',this)">20 мм</button>
-          <button class="seg-btn" onclick="selSeg('nb-size',this)">24 мм</button>
+          <button class="seg-btn active" onclick="selSeg('nb-size',this)">6 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size',this)">8 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size',this)">10 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size',this)">14 мм</button>
+        </div>
+      </div>
+      <div id="nb-size-boil-block" class="field" style="display:none">
+        <label>Розмір бойла</label>
+        <div class="seg" id="nb-size-boil">
+          <button class="seg-btn active" onclick="selSeg('nb-size-boil',this)">16 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size-boil',this)">20 мм</button>
+          <button class="seg-btn" onclick="selSeg('nb-size-boil',this)">24 мм</button>
         </div>
       </div>
       <div class="field"><label>Час покльовки</label><input type="datetime-local" id="nb-time"></div>
@@ -995,7 +1004,7 @@ function renderSession(){
   if(!bites.length){
     bitesHtml=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon" style="font-size:32px">🐟</div><div class="empty-title" style="font-size:16px">Покльовок ще немає</div><div class="empty-sub">Натисни "+ Покльовка"</div></div>`;
   } else {
-    bites.forEach(b=>{bitesHtml+=biteCardHTML(b)});
+    bites.forEach(b=>{bitesHtml+=biteCardHTML(b, activeSess?.started_at)});
   }
   document.getElementById('session-content').innerHTML=`
     <div id="timer-block" class="timer-block">
@@ -1019,7 +1028,7 @@ function renderSession(){
   updateTimer();
 }
 
-function biteCardHTML(b){
+function biteCardHTML(b, sessStartedAt){
   const fishObj=(settings?.fish_types||[]).find(f=>f.name===b.fish_type);
   const uw=fishObj?fishObj.unwanted:UNWANTED.includes(b.fish_type);
   const baitStr=[b.bait_type,b.bait_flavor,b.bait_color,b.bait_size].filter(Boolean).join(' · ');
@@ -1029,6 +1038,17 @@ function biteCardHTML(b){
   const distBadge=b.distance_m
     ? `<div class="bite-dist-badge">${b.distance_m} м.</div>`
     : '';
+  // elapsed time from session start
+  let elapsedStr='';
+  const startTs=sessStartedAt?new Date(sessStartedAt):null;
+  if(startTs&&b.bitten_at){
+    const diff=new Date(b.bitten_at)-startTs;
+    if(diff>=0){
+      const eh=Math.floor(diff/3600000);
+      const em=Math.floor((diff%3600000)/60000);
+      elapsedStr=` <span style="color:var(--text3);font-size:10px">(${eh} год. ${String(em).padStart(2,'0')} хв від поч.)</span>`;
+    }
+  }
   return `<div class="bite-card">
     <div class="bite-card-bg"></div>
     <div class="bite-card-overlay"></div>
@@ -1046,7 +1066,7 @@ function biteCardHTML(b){
           ${b.rod_number?`<span class="bite-tag">Вуд. ${b.rod_number}</span>`:''}
         </div>
         ${baitStr?`<div class="bite-row"><span class="bite-tag-neutral" style="font-size:11px">${baitStr}</span></div>`:''}
-        <div class="bite-time">${fmtDateTime(b.bitten_at)}</div>
+        <div class="bite-time">${fmtDateTime(b.bitten_at)}${elapsedStr}</div>
         ${b.notes?`<div class="bite-notes">${b.notes}</div>`:''}
       </div>
     </div>
@@ -1192,7 +1212,7 @@ async function openArchiveSession(sessId){
   if(!sb_bites.length){
     bitesHtml=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Покльовок не було</div>`;
   } else {
-    sb_bites.forEach(b=>{bitesHtml+=biteCardHTML(b)});
+    sb_bites.forEach(b=>{bitesHtml+=biteCardHTML(b, sess.started_at)});
   }
 
   document.getElementById('archive-modal-body').innerHTML=`
@@ -1235,6 +1255,7 @@ function openNewBite(){
   buildFlavorChips();
   buildColorChips();
   document.getElementById('nb-size-block').style.display='none';
+  document.getElementById('nb-size-boil-block').style.display='none';
   document.getElementById('nb-color-block').style.display='';
   openModal('new-bite-modal');
 }
@@ -1299,7 +1320,8 @@ function selBaitType(btn,type){
   curBaitType=type;
   selSeg('nb-bait-type',btn);
   document.getElementById('nb-color-block').style.display=type==='boil'?'none':'';
-  document.getElementById('nb-size-block').style.display=type==='boil'?'':'none';
+  document.getElementById('nb-size-block').style.display=(type==='popup'||type==='balance')?'':'none';
+  document.getElementById('nb-size-boil-block').style.display=type==='boil'?'':'none';
 }
 
 async function saveBite(){
@@ -1314,8 +1336,10 @@ async function saveBite(){
   const flavor=flavorEl?.textContent||null;
   const colorEl=document.querySelector('#nb-color .color-chip.active');
   const colorText=colorEl?.textContent?.trim()||null;
-  const sizeEl=document.querySelector('#nb-size .seg-btn.active');
-  const size=curBaitType==='boil'?(sizeEl?.textContent||null):null;
+  const sizeEl=curBaitType==='boil'
+    ? document.querySelector('#nb-size-boil .seg-btn.active')
+    : document.querySelector('#nb-size .seg-btn.active');
+  const size=sizeEl?.textContent||null;
   const timeVal=document.getElementById('nb-time').value;
   const notes=document.getElementById('nb-notes').value.trim();
   const baitTypeLabel={'popup':'Поп-ап','balance':'Баланс','boil':'Бойл'}[curBaitType];
@@ -1444,13 +1468,57 @@ async function renderStatsBody(){
   const lakeMap={};biteData.forEach(b=>{const l=b.sessions?.lake_name;if(l)lakeMap[l]=(lakeMap[l]||0)+1});
   const lakeSorted=Object.entries(lakeMap).sort((a,b)=>b[1]-a[1]);
   const maxLake=lakeSorted[0]?.[1]||1;
-  // hourly
+  // hourly by clock (for 'all' mode)
   const hourMap=Array(24).fill(0);biteData.forEach(b=>{hourMap[new Date(b.bitten_at).getHours()]++});
   const maxHour=Math.max(...hourMap)||1;
   const hourBars=hourMap.map((v,h)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">
     <div style="height:${Math.round(v/maxHour*40)}px;min-height:${v?2:0}px;background:var(--gold);border-radius:2px;width:100%;max-width:12px;margin:0 auto"></div>
     <div style="font-size:8px;color:var(--text3)">${h%3===0?h:''}</div>
   </div>`).join('');
+
+  // activity from session start in 5h buckets (for 'session' mode)
+  let sessStartChart=null;
+  if(statsMode==='session'&&statsSessionId){
+    const {data:allSessForChart}=await sb.from('sessions').select('started_at').eq('id',statsSessionId).single();
+    sessStartChart=allSessForChart?.started_at?new Date(allSessForChart.started_at):null;
+  }
+  const maxSessBuckets=12; // up to 60h
+  const sessBuckets=Array(maxSessBuckets).fill(0);
+  if(sessStartChart){
+    biteData.forEach(b=>{
+      const diff=new Date(b.bitten_at)-sessStartChart;
+      if(diff>=0){
+        const bucket=Math.floor(diff/3600000/5);
+        if(bucket<maxSessBuckets)sessBuckets[bucket]++;
+      }
+    });
+  }
+  const maxSessBucket=Math.max(...sessBuckets)||1;
+  const usedBuckets=sessBuckets.reduce((last,v,i)=>v>0?i:last,-1)+1||maxSessBuckets;
+  const sessTimeBars=sessBuckets.slice(0,Math.min(usedBuckets+1,maxSessBuckets)).map((v,i)=>{
+    const label=`${i*5}`;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0">
+      ${v>0?`<div style="font-size:8px;color:var(--gold);margin-bottom:1px">${v}</div>`:'<div style="font-size:8px;color:transparent">0</div>'}
+      <div style="height:${Math.round(v/maxSessBucket*50)}px;min-height:${v?3:0}px;background:linear-gradient(to top,var(--gold),var(--gold2));border-radius:2px 2px 0 0;width:100%;max-width:18px;margin:0 auto"></div>
+      <div style="font-size:8px;color:var(--text3);white-space:nowrap">${label}г</div>
+    </div>`;
+  }).join('');
+
+  // distance chart (session mode) - vertical bar chart
+  const distChartMap={};
+  biteData.forEach(b=>{if(b.distance_m)distChartMap[b.distance_m]=(distChartMap[b.distance_m]||0)+1});
+  const distChartSorted=Object.entries(distChartMap).sort((a,b)=>Number(a[0])-Number(b[0]));
+  const maxDistChart=distChartSorted.reduce((m,[,c])=>Math.max(m,c),0)||1;
+  const totalDistFish=distChartSorted.reduce((s,[,c])=>s+c,0)||1;
+  const distChartBars=distChartSorted.map(([d,c])=>{
+    const pct=Math.round(c/totalDistFish*100);
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0">
+      <div style="font-size:8px;color:var(--gold);font-weight:600">${pct}%</div>
+      <div style="height:${Math.round(c/maxDistChart*60)}px;min-height:3px;background:linear-gradient(to top,#63b0ff,#a0d0ff);border-radius:2px 2px 0 0;width:100%;max-width:22px;margin:0 auto"></div>
+      <div style="font-size:8px;color:var(--text3)">${d}м</div>
+      <div style="font-size:8px;color:var(--text2)">${c}шт</div>
+    </div>`;
+  }).join('');
 
   el.innerHTML=`
     ${sessInfoHtml}
@@ -1464,16 +1532,21 @@ async function renderStatsBody(){
       <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2)">${maxB.fish_type} · ${maxB.weight||'?'} кг</div>
       <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDateTime(maxB.bitten_at)}${statsMode==='all'?' · '+(maxB.sessions?.lake_name||''):''}</div>
     </div>`:''}
+    ${statsMode==='session'&&sessStartChart?`
+    <div class="section-label" style="margin-bottom:6px">Активність від початку сесії <span style="font-size:10px;color:var(--text3)">(кроки по 5 год.)</span></div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:90px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px;overflow-x:auto">${sessTimeBars}</div>
+    `:`
     <div class="section-label" style="margin-bottom:10px">Активність по годинах</div>
-    <div style="display:flex;align-items:flex-end;gap:1px;height:60px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px">${hourBars}</div>
+    <div style="display:flex;align-items:flex-end;gap:1px;height:60px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px">${hourBars}</div>
+    `}
     <div class="section-label" style="margin-bottom:10px">Рейтинг риби</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+    <div style="background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
       ${fishSorted.map(([f,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${f}</span><span>${c} шт</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxFish*100)}%"></div></div></div>`).join('')}
     </div>
-    ${statsMode==='session'&&distSorted.length?`<div class="section-label" style="margin-bottom:10px">Рейтинг дистанцій</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
-      ${distSorted.map(([d,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${d}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxDist*100)}%"></div></div></div>`).join('')}
-    </div>`:''}
+    ${statsMode==='session'&&distChartSorted.length?`
+    <div class="section-label" style="margin-bottom:6px">Дистанції <span style="font-size:10px;color:var(--text3)">(% від всіх покльовок)</span></div>
+    <div style="display:flex;align-items:flex-end;gap:4px;height:110px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px;overflow-x:auto">${distChartBars}</div>
+    `:''}
     ${baitSorted.length?`<div class="section-label" style="margin-bottom:10px">Топ насадки</div>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
       ${baitSorted.map(([b,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${b}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxBait*100)}%"></div></div></div>`).join('')}
@@ -1511,7 +1584,8 @@ function copyBite(b){
     const baitBtns=document.querySelectorAll('#nb-bait-type .seg-btn');
     baitBtns.forEach((btn,i)=>btn.classList.toggle('active',['popup','balance','boil'][i]===bType));
     document.getElementById('nb-color-block').style.display=bType==='boil'?'none':'';
-    document.getElementById('nb-size-block').style.display=bType==='boil'?'':'none';
+    document.getElementById('nb-size-block').style.display=(bType==='popup'||bType==='balance')?'':'none';
+    document.getElementById('nb-size-boil-block').style.display=bType==='boil'?'':'none';
     // flavor
     buildFlavorChips();
     if(b.bait_flavor){
