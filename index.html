@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Darina Fish">
-<title>Darina_Fish</title>
+<meta name="apple-mobile-web-app-title" content="Рибацький двіж">
+<title>Рибацький двіж</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -286,6 +286,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 .rod-chips{display:flex;gap:8px}
 .rod-chip{flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--r2);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;background:transparent;text-align:center;font-family:'Inter',sans-serif}
 .rod-chip.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold)}
+.rod-chip.rod-inactive{opacity:.3;background:transparent;border-color:var(--border);color:var(--text3)}
 
 .divider{height:1px;background:var(--border);margin:14px 0}
 
@@ -365,7 +366,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 
 <!-- AUTH -->
 <div id="auth-screen">
-  <div class="auth-logo">Darina_Fish</div>
+  <div class="auth-logo">Рибацький двіж</div>
   <div class="auth-sub">Короповий щоденник</div>
   <div class="auth-box">
 
@@ -389,9 +390,12 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 <div id="app" style="display:none">
   <div class="header">
     <div class="header-top">
-      <div class="app-name">Darina_Fish <span id="header-nick" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);font-weight:400;letter-spacing:0;margin-left:4px"></span></div>
+      <div>
+        <div class="app-name">Рибацький двіж</div>
+        <div id="header-nick" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);font-weight:400;letter-spacing:0;min-height:16px"></div>
+      </div>
       <div class="header-right">
-        <button class="icon-btn" onclick="openModal('settings-modal')">⚙ Налаштування</button>
+        <button class="icon-btn" onclick="openModal('settings-modal')">⚙</button>
         <button class="icon-btn" onclick="doLogout()">Вийти</button>
       </div>
     </div>
@@ -489,7 +493,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
         <div class="chip-group" id="nb-fish"></div>
       </div>
       <div class="row2">
-        <div class="field"><label>Вага (кг)</label><input type="number" id="nb-weight" placeholder="" step="0.01" min="0" max="999.99" oninput="this.value=this.value.replace(/(\.\d{2})\d+/,'$1')"></div>
+        <div class="field"><label>Вага (кг)</label><input type="text" inputmode="decimal" id="nb-weight" placeholder="" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:.2s;-webkit-appearance:none" oninput="this.value=this.value.replace(/,/,'.');if((this.value.match(/\./)||[]).length>1)this.value=this.value.slice(0,-1);const m=this.value.match(/^(\d*\.?\d{0,2})/);this.value=m?m[1]:''"></div>
         <div class="field"><label>Дистанція (м)</label><input type="number" id="nb-dist" placeholder="60" step="1" min="0"></div>
       </div>
       <div id="nb-spots-block" class="field" style="display:none">
@@ -546,8 +550,8 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 
 <!-- SETTINGS -->
 <div class="modal-overlay" id="settings-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
+  <div class="modal" id="settings-modal-inner">
+    <div class="modal-handle" id="settings-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
     <div class="modal-head"><div class="modal-title">Налаштування</div></div>
     <div class="modal-body">
       <div class="settings-section">
@@ -631,8 +635,8 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 
 <!-- SESSION SPOTS SETTINGS -->
 <div class="modal-overlay" id="sess-spots-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
+  <div class="modal" id="sess-spots-modal-inner">
+    <div class="modal-handle" id="sess-spots-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
     <div class="modal-head"><div class="modal-title">⚙ Налаштування сесії</div></div>
     <div class="modal-body" id="sess-spots-body">
     </div>
@@ -763,7 +767,7 @@ async function onLogin(u){
   try{
     const {data:profile}=await sb.from('profiles').select('nickname').eq('id',u.id).single();
     if(profile?.nickname){
-      document.getElementById('header-nick').textContent='· '+profile.nickname;
+      document.getElementById('header-nick').textContent=profile.nickname;
     }
   }catch(e){}
   try{await loadSettings();}catch(e){console.log('settings err',e)}
@@ -808,7 +812,7 @@ async function saveNickname(){
   const msg=document.getElementById('st-nick-msg');
   if(!nick){msg.style.color='var(--red)';msg.textContent='Введіть нікнейм';return}
   await sb.from('profiles').upsert({id:user.id,nickname:nick});
-  document.getElementById('header-nick').textContent='· '+nick;
+  document.getElementById('header-nick').textContent=nick;
   msg.style.color='var(--gold)';
   msg.textContent='✓ Нікнейм збережено';
   setTimeout(()=>msg.textContent='',2000);
@@ -1284,10 +1288,16 @@ async function openArchiveSession(sessId){
 // NEW BITE MODAL
 function openNewBite(){
   if(!activeSess){toast('Немає активної сесії');return}
+  editBiteId=null; // always reset edit mode
   document.getElementById('nb-weight').value='';
   document.getElementById('nb-dist').value='';
   document.getElementById('nb-notes').value='';
   document.getElementById('nb-time').value=toLocalDT();
+  // reset title/button
+  const mt=document.querySelector('#new-bite-modal .modal-title');
+  if(mt)mt.textContent='Нова покльовка';
+  const nb=document.getElementById('nb-btn');
+  if(nb)nb.textContent='Зберегти покльовку';
   // build fish chips from settings
   buildFishChips();
   // rods
@@ -1331,10 +1341,11 @@ function buildRodChips(){
     const b=document.createElement('button');
     b.className='rod-chip'+(i===1?' active':'');
     b.textContent=i;
+    b.dataset.rodNum=i;
     b.onclick=()=>{
+      if(b.dataset.inactive==='1')return; // block inactive rods
       document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
-      updateRodChipsForSpot();
     };
     c.appendChild(b);
   }
@@ -1377,13 +1388,15 @@ async function saveBite(){
   const fishEl=document.querySelector('#nb-fish .chip.active');
   const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
   const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
-  const weight=parseFloat(document.getElementById('nb-weight').value)||null;
+  const weight=parseFloat((document.getElementById('nb-weight').value||'').replace(',','.'))||null;
   if(!weight){
     const wInp=document.getElementById('nb-weight');
-    wInp.style.borderColor='var(--red)';
-    wInp.placeholder='Обов\'язково!';
+    wInp.style.border='1px solid var(--red)';
+    wInp.style.borderRadius='var(--r2)';
+    wInp.setAttribute('placeholder','Обов\'язково!');
     wInp.focus();
-    setTimeout(()=>{wInp.style.borderColor='';wInp.placeholder='';},2500);
+    setTimeout(()=>{wInp.style.border='';wInp.removeAttribute('placeholder');},2500);
+    toast('⚠ Вкажіть вагу риби');
     return;
   }
   const dist=parseFloat(document.getElementById('nb-dist').value)||null;
@@ -1588,18 +1601,20 @@ function touchRodEndToSpot(e,toSi){
 }
 function _doDropToSpot(toSi){
   if(dragRodNum===null)return;
+  const rodNum=Number(dragRodNum);
   if(dragRodFrom!=='unassigned'){
     const src=sessSpots[dragRodFrom];
-    if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
+    if(src)src.rods=(src.rods||[]).filter(r=>Number(r)!==rodNum);
   }
   if(!sessSpots[toSi].rods)sessSpots[toSi].rods=[];
-  if(!sessSpots[toSi].rods.includes(dragRodNum))sessSpots[toSi].rods.push(dragRodNum);
+  if(!sessSpots[toSi].rods.map(Number).includes(rodNum))sessSpots[toSi].rods.push(rodNum);
   saveSessSpots();renderSessSpots();
 }
 function _doDropToUnassigned(){
   if(dragRodNum===null||dragRodFrom==='unassigned')return;
+  const rodNum=Number(dragRodNum);
   const src=sessSpots[dragRodFrom];
-  if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
+  if(src)src.rods=(src.rods||[]).filter(r=>Number(r)!==rodNum);
   saveSessSpots();renderSessSpots();
 }
 function dropRodToSpot(e,toSi){
@@ -1612,10 +1627,24 @@ function dropRodToUnassigned(e){
   document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
   _doDropToUnassigned();
 }
+function setSpotDist(si,v){
+  const val=parseFloat(v)||null;
+  sessSpots[si].dist=val;
+  saveSessSpots();
+  renderSessSpots();
+}
+
 function addSpot(){
   const n=sessSpots.length+1;
   sessSpots.push({id:Date.now(),name:`Точка ${n}`,dist:null,active:true,rods:[]});
-  saveSessSpots();renderSessSpots();
+  saveSessSpots();
+  renderSessSpots();
+  // focus the distance input of the new spot after render
+  setTimeout(()=>{
+    const inputs=document.querySelectorAll('.spot-row input[type=number]');
+    const last=inputs[inputs.length-1];
+    if(last){last.focus();last.style.borderColor='var(--gold)';}
+  },80);
 }
 function delSpot(si){sessSpots.splice(si,1);saveSessSpots();renderSessSpots();}
 function toggleSpot(si){sessSpots[si].active=sessSpots[si].active===false?true:false;saveSessSpots();renderSessSpots();}
@@ -1623,6 +1652,12 @@ function renameSpot(si,v){sessSpots[si].name=v;saveSessSpots();}
 function setSpotDist(si,v){sessSpots[si].dist=parseFloat(v)||null;saveSessSpots();renderSessSpots();}
 function setPegDist(v){sessPegDist=v;saveSessSpots();renderSessSpots();}
 function closeSessSpots(){
+  // check all spots have distance
+  const missing=sessSpots.find(s=>s.active!==false&&!s.dist);
+  if(missing){
+    toast(`⚠ Вкажіть метри для "${missing.name}"`);
+    return;
+  }
   saveSessSpots();
   document.getElementById('sess-spots-modal').classList.remove('open');
   buildSpotsChips();
@@ -1633,27 +1668,31 @@ function updateRodChipsForSpot(){
   if(!activeChip)return;
   const spotName=activeChip.textContent.replace(/\s*\(.*\)/,'').trim();
   const spot=sessSpots.find(s=>s.name===spotName&&s.active!==false);
-  const spotRods=spot?.rods||[];
+  // coerce to Number to avoid string vs number mismatch from localStorage
+  const spotRods=(spot?.rods||[]).map(Number);
   const msgEl=document.getElementById('nb-spot-rod-msg');
-  let firstActive=null;
+  let firstActiveBtn=null;
+
   document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(btn=>{
-    const rn=parseInt(btn.textContent);
+    const rn=Number(btn.dataset.rodNum||btn.textContent.trim());
+    // reset state
     btn.classList.remove('active','rod-inactive');
+    btn.dataset.inactive='0';
+
     if(spotRods.length===0){
       btn.classList.add('rod-inactive');
+      btn.dataset.inactive='1';
       if(msgEl)msgEl.style.display='';
     } else if(spotRods.includes(rn)){
-      if(!firstActive)firstActive=btn;
+      if(!firstActiveBtn)firstActiveBtn=btn;
       if(msgEl)msgEl.style.display='none';
     } else {
       btn.classList.add('rod-inactive');
+      btn.dataset.inactive='1';
       if(msgEl)msgEl.style.display='none';
     }
   });
-  // auto-select first available rod
-  if(firstActive){
-    firstActive.classList.add('active');
-  }
+  if(firstActiveBtn)firstActiveBtn.classList.add('active');
 }
 
 function buildSpotsChips(){
@@ -1793,43 +1832,43 @@ function editBite(id){
   },50);
 }
 
-// ===== SWIPE DOWN TO CLOSE NEW BITE MODAL =====
-(function(){
+// ===== SWIPE DOWN TO CLOSE MODALS =====
+function initSwipeDown(handleId,innerId,modalId){
+  const handle=document.getElementById(handleId);
+  const inner=document.getElementById(innerId);
+  if(!handle||!inner)return;
   let startY=0,isDragging=false;
-  document.addEventListener('DOMContentLoaded',()=>{});
-  function initHandleDrag(){
-    const handle=document.getElementById('nb-handle');
-    const inner=document.getElementById('new-bite-modal-inner');
-    if(!handle||!inner)return;
-    handle.addEventListener('touchstart',e=>{
-      startY=e.touches[0].clientY;isDragging=true;
-      inner.style.transition='none';
-    },{passive:true});
-    handle.addEventListener('touchmove',e=>{
-      if(!isDragging)return;
-      const dy=Math.max(0,e.touches[0].clientY-startY);
-      inner.style.transform=`translateY(${dy}px)`;
-    },{passive:true});
-    handle.addEventListener('touchend',e=>{
-      if(!isDragging)return;
-      isDragging=false;
-      const dy=e.changedTouches[0].clientY-startY;
-      inner.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';
-      if(dy>80){
-        inner.style.transform=`translateY(100%)`;
-        setTimeout(()=>{
-          closeModal('new-bite-modal');
-          inner.style.transform='';inner.style.transition='';
-        },300);
-      } else {
-        inner.style.transform='';
-        setTimeout(()=>inner.style.transition='',300);
-      }
-    },{passive:true});
-  }
-  // init after a tick so DOM is ready
-  setTimeout(initHandleDrag,500);
-})();
+  handle.addEventListener('touchstart',e=>{
+    startY=e.touches[0].clientY;isDragging=true;
+    inner.style.transition='none';
+  },{passive:true});
+  handle.addEventListener('touchmove',e=>{
+    if(!isDragging)return;
+    const dy=Math.max(0,e.touches[0].clientY-startY);
+    inner.style.transform=`translateY(${dy}px)`;
+  },{passive:true});
+  handle.addEventListener('touchend',e=>{
+    if(!isDragging)return;
+    isDragging=false;
+    const dy=e.changedTouches[0].clientY-startY;
+    inner.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';
+    if(dy>80){
+      inner.style.transform=`translateY(100%)`;
+      setTimeout(()=>{
+        closeModal(modalId);
+        inner.style.transform='';inner.style.transition='';
+      },300);
+    } else {
+      inner.style.transform='';
+      setTimeout(()=>inner.style.transition='',300);
+    }
+  },{passive:true});
+}
+setTimeout(()=>{
+  initSwipeDown('nb-handle','new-bite-modal-inner','new-bite-modal');
+  initSwipeDown('settings-handle','settings-modal-inner','settings-modal');
+  initSwipeDown('sess-spots-handle','sess-spots-modal-inner','sess-spots-modal');
+},500);
 
 // STATS
 let statsMode='all'; // 'all' | 'session'
