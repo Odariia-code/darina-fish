@@ -329,7 +329,30 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 }
 .toast.show{opacity:1}
 
-/* ===== SCROLLBAR ===== */
+/* ===== BITE SWIPE ACTIONS ===== */
+.bite-card-wrap{position:relative;margin-bottom:8px;border-radius:var(--r);overflow:hidden}
+.bite-card-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch;z-index:0}
+.bite-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;border:none;cursor:pointer;font-size:20px;transition:.15s}
+.bite-action-edit{background:rgba(201,168,76,.85)}
+.bite-action-del{background:rgba(248,81,73,.85)}
+.bite-card-wrap .bite-card{position:relative;z-index:1;margin-bottom:0;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.bite-card-wrap.swiped .bite-card{transform:translateX(-112px)}
+/* ===== SESSION SPOTS ===== */
+.spot-row{background:rgba(22,27,34,.8);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.spot-row.inactive{opacity:.45}
+.spot-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.spot-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.spot-dist-badge{font-size:11px;color:#63b0ff;background:rgba(99,176,255,.13);border:1px solid rgba(99,176,255,.3);border-radius:5px;padding:2px 7px}
+.spot-pegs{font-size:10px;color:var(--text3);margin-left:2px}
+.spot-rods{display:flex;flex-wrap:wrap;gap:5px;min-height:22px;border:1px dashed var(--border2);border-radius:6px;padding:5px 7px;margin-bottom:6px;transition:.2s}
+.spot-rods.drag-over-spot{border-color:var(--gold);background:rgba(201,168,76,.07)}
+.spot-rod-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:12px;font-size:11px;color:var(--gold);font-weight:600;cursor:grab;user-select:none}
+.spot-rod-chip:active{cursor:grabbing}
+.unassigned-pool{display:flex;flex-wrap:wrap;gap:5px;min-height:28px;border:1px dashed var(--border2);border-radius:6px;padding:6px 8px;margin-bottom:14px;background:rgba(13,17,23,.4)}
+.unassigned-pool.drag-over-spot{border-color:var(--gold);background:rgba(201,168,76,.07)}
+/* tooltip for pegs */
+.peg-tooltip{position:absolute;background:rgba(13,17,23,.92);border:1px solid var(--gold);border-radius:6px;padding:3px 9px;font-size:11px;color:var(--gold);font-weight:600;pointer-events:none;z-index:999;white-space:nowrap;transform:translate(-50%,-120%);transition:opacity .2s}
+
 .content::-webkit-scrollbar,.modal-body::-webkit-scrollbar{width:0}
 
 /* ===== COLOR SWATCH ===== */
@@ -466,8 +489,13 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
         <div class="chip-group" id="nb-fish"></div>
       </div>
       <div class="row2">
-        <div class="field"><label>Вага (кг)</label><input type="number" id="nb-weight" placeholder="5.20" step="0.01" min="0" max="999.99" oninput="this.value=this.value.replace(/(\.\d{2})\d+/,'$1')"></div>
+        <div class="field"><label>Вага (кг)</label><input type="number" id="nb-weight" placeholder="" step="0.01" min="0" max="999.99" oninput="this.value=this.value.replace(/(\.\d{2})\d+/,'$1')"></div>
         <div class="field"><label>Дистанція (м)</label><input type="number" id="nb-dist" placeholder="60" step="1" min="0"></div>
+      </div>
+      <div id="nb-spots-block" class="field" style="display:none">
+        <label style="color:#3fb950">Точка лову</label>
+        <div class="chip-group" id="nb-spots-chips"></div>
+        <div id="nb-spot-rod-msg" style="font-size:11px;color:var(--red);margin-top:4px;display:none">До точки не прикріплене жодне вудилище</div>
       </div>
       <div class="field">
         <label>Вудилище</label>
@@ -601,7 +629,15 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- SESSION SPOTS SETTINGS -->
+<div class="modal-overlay" id="sess-spots-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">⚙ Налаштування сесії</div></div>
+    <div class="modal-body" id="sess-spots-body">
+    </div>
+  </div>
+</div>
 
 <script>
 const SB_URL='https://imgzriiglnqazzdmulmo.supabase.co';
@@ -1008,6 +1044,7 @@ function renderSession(){
   }
   document.getElementById('session-content').innerHTML=`
     <div id="timer-block" class="timer-block">
+      <button onclick="openSessSpots()" style="position:absolute;top:10px;right:12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 9px;color:var(--gold);font-size:14px;cursor:pointer;z-index:2;line-height:1">⚙</button>
       <div class="timer-lake">${activeSess.lake_name}</div>
       <div class="timer-sector">Сектор ${activeSess.sector||'—'} · ${activeSess.rods} вуд. · ${activeSess.rig||''}</div>
       <div class="timer-digits" id="timer-digits">--:--:--</div>
@@ -1049,7 +1086,12 @@ function biteCardHTML(b, sessStartedAt){
       elapsedStr=` <span style="color:var(--text3);font-size:10px">(${eh} год. ${String(em).padStart(2,'0')} хв від поч.)</span>`;
     }
   }
-  return `<div class="bite-card">
+  return `<div class="bite-card-wrap" id="bcw-${b.id}">
+    <div class="bite-card-actions">
+      <button class="bite-action-btn bite-action-edit" onclick="editBite('${b.id}')" title="Редагувати">✏️</button>
+      <button class="bite-action-btn bite-action-del" onclick="deleteBite('${b.id}')" title="Видалити">🗑</button>
+    </div>
+    <div class="bite-card" ontouchstart="swipeStart(event,'${b.id}')" ontouchend="swipeEnd(event,'${b.id}')">
     <div class="bite-card-bg"></div>
     <div class="bite-card-overlay"></div>
     ${validIcon}
@@ -1063,7 +1105,7 @@ function biteCardHTML(b, sessStartedAt){
       <div class="bite-divider"></div>
       <div class="bite-details">
         <div class="bite-row">
-          ${b.rod_number?`<span class="bite-tag">Вуд. ${b.rod_number}</span>`:''}
+          ${b.rod_number?`<span class="bite-tag" onclick="showPegTooltip(event,${b.rod_number})" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:''}
         </div>
         ${baitStr?`<div class="bite-row"><span class="bite-tag-neutral" style="font-size:11px">${baitStr}</span></div>`:''}
         <div class="bite-time">${fmtDateTime(b.bitten_at)}${elapsedStr}</div>
@@ -1071,6 +1113,7 @@ function biteCardHTML(b, sessStartedAt){
       </div>
     </div>
     ${distBadge}
+  </div>
   </div>`;
 }
 
@@ -1257,6 +1300,8 @@ function openNewBite(){
   document.getElementById('nb-size-block').style.display='none';
   document.getElementById('nb-size-boil-block').style.display='none';
   document.getElementById('nb-color-block').style.display='';
+  loadSessSpots();
+  buildSpotsChips();
   openModal('new-bite-modal');
 }
 
@@ -1286,7 +1331,11 @@ function buildRodChips(){
     const b=document.createElement('button');
     b.className='rod-chip'+(i===1?' active':'');
     b.textContent=i;
-    b.onclick=()=>{document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(x=>x.classList.remove('active'));b.classList.add('active')};
+    b.onclick=()=>{
+      document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      updateRodChipsForSpot();
+    };
     c.appendChild(b);
   }
 }
@@ -1329,6 +1378,14 @@ async function saveBite(){
   const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
   const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
   const weight=parseFloat(document.getElementById('nb-weight').value)||null;
+  if(!weight){
+    const wInp=document.getElementById('nb-weight');
+    wInp.style.borderColor='var(--red)';
+    wInp.placeholder='Обов\'язково!';
+    wInp.focus();
+    setTimeout(()=>{wInp.style.borderColor='';wInp.placeholder='';},2500);
+    return;
+  }
   const dist=parseFloat(document.getElementById('nb-dist').value)||null;
   const rodEl=document.querySelector('#nb-rod-chips .rod-chip.active');
   const rod=rodEl?parseInt(rodEl.textContent):null;
@@ -1345,21 +1402,312 @@ async function saveBite(){
   const baitTypeLabel={'popup':'Поп-ап','balance':'Баланс','boil':'Бойл'}[curBaitType];
   const btn=document.getElementById('nb-btn');
   btn.disabled=true;btn.textContent='Збереження...';
-  const {error}=await sb.from('bites').insert({
-    user_id:user.id,session_id:activeSess.id,
+  const bitePayload={
     fish_type:fish,weight,distance_m:dist,rod_number:rod,
     bait_type:baitTypeLabel,bait_flavor:flavor,bait_color:colorText,bait_size:size,
     notes,is_unwanted:isUnwanted,
     bitten_at:timeVal?new Date(timeVal).toISOString():new Date().toISOString()
-  });
+  };
+  let error;
+  if(editBiteId){
+    ({error}=await sb.from('bites').update(bitePayload).eq('id',editBiteId));
+    editBiteId=null;
+  } else {
+    ({error}=await sb.from('bites').insert({user_id:user.id,session_id:activeSess.id,...bitePayload}));
+  }
   btn.disabled=false;btn.textContent='Зберегти покльовку';
   if(error){toast('Помилка: '+error.message);return}
   closeModal('new-bite-modal');
+  // reset modal title
+  const mt=document.querySelector('#new-bite-modal .modal-title');
+  if(mt)mt.textContent='Нова покльовка';
   toast(isUnwanted?'⚠ Небажана риба зафіксована':'✓ Покльовку збережено!');
   await loadBites(activeSess.id);
   const contentEl=document.querySelector('.content');
   contentEl.scrollTop=contentEl.scrollHeight;
   renderSession();
+}
+
+// ===== SESSION SPOTS =====
+// sessSpots: [{id, name, dist, active, rods:[1,2,...]}]
+// sessPegDist: number (meters between pegs)
+let sessSpots=[];
+let sessPegDist=5;
+
+function loadSessSpots(){
+  try{
+    const raw=localStorage.getItem('sess_spots_'+activeSess?.id);
+    if(raw){const p=JSON.parse(raw);sessSpots=p.spots||[];sessPegDist=p.pegDist||5;}
+    else{sessSpots=[];sessPegDist=5;}
+  }catch{sessSpots=[];sessPegDist=5;}
+}
+function saveSessSpots(){
+  if(!activeSess)return;
+  localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist}));
+}
+
+function openSessSpots(){
+  loadSessSpots();
+  renderSessSpots();
+  document.getElementById('sess-spots-modal').classList.add('open');
+}
+
+function renderSessSpots(){
+  const body=document.getElementById('sess-spots-body');
+  const totalRods=activeSess?.rods||2;
+  // all assigned rod numbers
+  const assignedRods=new Set(sessSpots.flatMap(s=>s.rods||[]));
+  const unassigned=[];
+  for(let i=1;i<=totalRods;i++){if(!assignedRods.has(i))unassigned.push(i);}
+
+  let html=`
+    <div style="margin-bottom:12px">
+      <div class="settings-title">Відстань між кілочками (м)</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px" id="peg-dist-chips">
+        ${[4,5].map(v=>`<button onclick="setPegDist(${v})" class="chip${sessPegDist===v?' active':''}" style="padding:5px 12px;font-size:12px">${v}м</button>`).join('')}
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="margin-bottom:8px">
+      <div class="settings-title" style="margin-bottom:6px">Нерозподілені вудилища</div>
+      <div class="unassigned-pool" id="unassigned-pool" ondragover="event.preventDefault();this.classList.add('drag-over-spot')" ondragleave="this.classList.remove('drag-over-spot')" ondrop="dropRodToUnassigned(event)">
+        ${unassigned.map(r=>`<div class="spot-rod-chip" draggable="true" ondragstart="dragRodStart(event,${r},'unassigned')"  >Вуд.${r}</div>`).join('')}
+        ${unassigned.length===0?`<span style="font-size:11px;color:var(--text3)">Всі вудилища розподілені</span>`:''}
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="settings-title" style="margin-bottom:0">Точки лову</div>
+      <button onclick="addSpot()" style="background:var(--gold);border:none;border-radius:var(--r2);padding:5px 12px;color:#0d1117;font-weight:600;font-size:11px;cursor:pointer;font-family:Inter,sans-serif">+ Додати</button>
+    </div>
+  `;
+
+  sessSpots.forEach((spot,si)=>{
+    const pegs=spot.dist&&sessPegDist?Math.round(spot.dist/sessPegDist):null;
+    html+=`<div class="spot-row${spot.active===false?' inactive':''}">
+      <div class="spot-header">
+        <input value="${spot.name}" onchange="renameSpot(${si},this.value)" style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;font-family:Inter,sans-serif;outline:none;padding:2px 0">
+        <input type="number" value="${spot.dist||''}" placeholder="м" onchange="setSpotDist(${si},this.value)" style="width:52px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:#63b0ff;font-size:12px;font-family:Inter,sans-serif;outline:none;padding:3px 6px;text-align:center">
+        ${pegs?`<span class="spot-pegs">(${pegs} кіл)</span>`:''}
+        <button onclick="toggleSpot(${si})" style="background:transparent;border:1px solid var(--border2);border-radius:5px;padding:3px 7px;font-size:10px;color:${spot.active===false?'var(--gold)':'var(--text3)'};cursor:pointer;font-family:Inter,sans-serif">${spot.active===false?'↩ Активувати':'Деактив.'}</button>
+        <button onclick="delSpot(${si})" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px">×</button>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Перетягни вудилища:</div>
+      <div class="spot-rods" data-si="${si}" ondragover="event.preventDefault();this.classList.add('drag-over-spot')" ondragleave="this.classList.remove('drag-over-spot')" ondrop="dropRodToSpot(event,${si})">
+        ${(spot.rods||[]).map(r=>`<div class="spot-rod-chip" draggable="true" ondragstart="dragRodStart(event,${r},${si})">Вуд.${r}</div>`).join('')}
+        ${!(spot.rods||[]).length?`<span style="font-size:10px;color:var(--text3)">порожньо</span>`:''}
+      </div>
+    </div>`;
+  });
+
+  html+=`<div style="height:16px"></div>
+    <button class="btn-gold" onclick="closeSessSpots()">Готово</button>
+    <div style="height:20px"></div>`;
+
+  body.innerHTML=html;
+}
+
+let dragRodNum=null,dragRodFrom=null;
+function dragRodStart(e,rodNum,fromSi){
+  dragRodNum=rodNum;dragRodFrom=fromSi;
+  e.dataTransfer.effectAllowed='move';
+}
+function dropRodToSpot(e,toSi){
+  e.preventDefault();
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  if(dragRodNum===null)return;
+  // remove from source
+  if(dragRodFrom==='unassigned'){
+    // already not in any spot
+  } else {
+    const src=sessSpots[dragRodFrom];
+    if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
+  }
+  // add to target spot
+  if(!sessSpots[toSi].rods)sessSpots[toSi].rods=[];
+  if(!sessSpots[toSi].rods.includes(dragRodNum))sessSpots[toSi].rods.push(dragRodNum);
+  dragRodNum=null;dragRodFrom=null;
+  saveSessSpots();
+  renderSessSpots();
+}
+function dropRodToUnassigned(e){
+  e.preventDefault();
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  if(dragRodNum===null)return;
+  if(dragRodFrom!=='unassigned'){
+    const src=sessSpots[dragRodFrom];
+    if(src)src.rods=(src.rods||[]).filter(r=>r!==dragRodNum);
+  }
+  dragRodNum=null;dragRodFrom=null;
+  saveSessSpots();
+  renderSessSpots();
+}
+function addSpot(){
+  const n=sessSpots.length+1;
+  sessSpots.push({id:Date.now(),name:`Точка ${n}`,dist:null,active:true,rods:[]});
+  saveSessSpots();renderSessSpots();
+}
+function delSpot(si){sessSpots.splice(si,1);saveSessSpots();renderSessSpots();}
+function toggleSpot(si){sessSpots[si].active=sessSpots[si].active===false?true:false;saveSessSpots();renderSessSpots();}
+function renameSpot(si,v){sessSpots[si].name=v;saveSessSpots();}
+function setSpotDist(si,v){sessSpots[si].dist=parseFloat(v)||null;saveSessSpots();renderSessSpots();}
+function setPegDist(v){sessPegDist=v;saveSessSpots();renderSessSpots();}
+function closeSessSpots(){
+  saveSessSpots();
+  document.getElementById('sess-spots-modal').classList.remove('open');
+  buildSpotsChips();
+}
+
+function updateRodChipsForSpot(){
+  const activeChip=document.querySelector('#nb-spots-chips .chip.active');
+  if(!activeChip)return;
+  const spotName=activeChip.textContent.replace(/\s*\(.*\)/,'').trim();
+  const spot=sessSpots.find(s=>s.name===spotName&&s.active!==false);
+  const spotRods=spot?.rods||[];
+  const msgEl=document.getElementById('nb-spot-rod-msg');
+  let firstActive=null;
+  document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(btn=>{
+    const rn=parseInt(btn.textContent);
+    btn.classList.remove('active','rod-inactive');
+    if(spotRods.length===0){
+      btn.classList.add('rod-inactive');
+      if(msgEl)msgEl.style.display='';
+    } else if(spotRods.includes(rn)){
+      if(!firstActive)firstActive=btn;
+      if(msgEl)msgEl.style.display='none';
+    } else {
+      btn.classList.add('rod-inactive');
+      if(msgEl)msgEl.style.display='none';
+    }
+  });
+  // auto-select first available rod
+  if(firstActive){
+    firstActive.classList.add('active');
+  }
+}
+
+function buildSpotsChips(){
+  const block=document.getElementById('nb-spots-block');
+  const chips=document.getElementById('nb-spots-chips');
+  if(!block||!chips)return;
+  const activeSpots=sessSpots.filter(s=>s.active!==false&&s.dist);
+  if(activeSpots.length){
+    block.style.display='';
+    chips.innerHTML='';
+    activeSpots.forEach((spot,i)=>{
+      const b=document.createElement('button');
+      b.className='chip'+(i===0?' active':'');
+      b.textContent=`${spot.name} (${spot.dist}м)`;
+      b.dataset.dist=spot.dist;
+      b.onclick=()=>{
+        document.querySelectorAll('#nb-spots-chips .chip').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        document.getElementById('nb-dist').value=spot.dist;
+        updateRodChipsForSpot();
+      };
+      chips.appendChild(b);
+    });
+    if(activeSpots[0]){document.getElementById('nb-dist').value=activeSpots[0].dist;}
+    // trigger rod filter for first spot
+    setTimeout(updateRodChipsForSpot,50);
+  } else {
+    block.style.display='none';
+    // reset all rods to enabled
+    document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(btn=>{btn.classList.remove('rod-inactive');});
+  }
+}
+
+// Rod chip tooltip for pegs — called from bite card "Вуд. X" tag
+function showPegTooltip(e,rodNum){
+  if(activeSess)loadSessSpots();
+  const spot=sessSpots.find(s=>(s.rods||[]).includes(rodNum)&&s.active!==false);
+  if(!spot||!spot.dist||!sessPegDist)return;
+  const pegs=Math.round(spot.dist/sessPegDist);
+  // remove any existing tip
+  document.querySelectorAll('.peg-tooltip').forEach(t=>t.remove());
+  const tip=document.createElement('div');
+  tip.className='peg-tooltip';
+  tip.textContent=`${pegs} кіл`;
+  const rect=e.target.getBoundingClientRect();
+  tip.style.cssText=`position:fixed;left:${rect.right-4}px;top:${rect.top}px;transform:translate(0,-100%)`;
+  document.body.appendChild(tip);
+  setTimeout(()=>tip.remove(),4000);
+}
+
+// ===== SWIPE TO REVEAL =====
+let swipeTouchX=0,swipeActive=null;
+function swipeStart(e,id){
+  swipeTouchX=e.touches[0].clientX;
+  swipeActive=id;
+}
+function swipeEnd(e,id){
+  const dx=swipeTouchX-e.changedTouches[0].clientX;
+  const wrap=document.getElementById('bcw-'+id);
+  if(!wrap)return;
+  if(dx>40){
+    // swipe left — reveal actions, close others
+    document.querySelectorAll('.bite-card-wrap.swiped').forEach(el=>{if(el.id!=='bcw-'+id)el.classList.remove('swiped')});
+    wrap.classList.add('swiped');
+  } else if(dx<-20){
+    wrap.classList.remove('swiped');
+  }
+}
+// close swipe on tap outside
+document.addEventListener('touchstart',e=>{
+  if(!e.target.closest('.bite-card-wrap'))
+    document.querySelectorAll('.bite-card-wrap.swiped').forEach(el=>el.classList.remove('swiped'));
+},{passive:true});
+
+// DELETE BITE
+async function deleteBite(id){
+  const wrap=document.getElementById('bcw-'+id);
+  if(wrap){wrap.style.opacity='.4';wrap.style.pointerEvents='none';}
+  const {error}=await sb.from('bites').delete().eq('id',id);
+  if(error){toast('Помилка видалення');if(wrap){wrap.style.opacity='';wrap.style.pointerEvents='';}return;}
+  toast('✓ Покльовку видалено');
+  await loadBites(activeSess.id);
+  renderSession();
+}
+
+// EDIT BITE
+let editBiteId=null;
+function editBite(id){
+  // close swipe
+  document.querySelectorAll('.bite-card-wrap.swiped').forEach(el=>el.classList.remove('swiped'));
+  const b=bites.find(x=>x.id===id);
+  if(!b)return;
+  editBiteId=id;
+  openNewBite();
+  setTimeout(()=>{
+    document.querySelector('#new-bite-modal .modal-title').textContent='Редагувати покльовку';
+    document.getElementById('nb-btn').textContent='Зберегти зміни';
+    buildFishChips();
+    document.querySelectorAll('#nb-fish .chip').forEach(btn=>{
+      btn.classList.toggle('active',btn.dataset.fishName===b.fish_type||btn.textContent===b.fish_type);
+    });
+    if(b.weight)document.getElementById('nb-weight').value=b.weight;
+    if(b.distance_m)document.getElementById('nb-dist').value=b.distance_m;
+    const rodBtns=document.querySelectorAll('#nb-rod-chips .rod-chip');
+    rodBtns.forEach(btn=>btn.classList.toggle('active',parseInt(btn.textContent)===b.rod_number));
+    const typeMap={'Поп-ап':'popup','Баланс':'balance','Бойл':'boil'};
+    const bType=typeMap[b.bait_type]||'popup';
+    curBaitType=bType;
+    document.querySelectorAll('#nb-bait-type .seg-btn').forEach((btn,i)=>btn.classList.toggle('active',['popup','balance','boil'][i]===bType));
+    document.getElementById('nb-color-block').style.display=bType==='boil'?'none':'';
+    document.getElementById('nb-size-block').style.display=(bType==='popup'||bType==='balance')?'':'none';
+    document.getElementById('nb-size-boil-block').style.display=bType==='boil'?'':'none';
+    buildFlavorChips();
+    if(b.bait_flavor)document.querySelectorAll('#nb-flavor .chip').forEach(btn=>btn.classList.toggle('active',btn.textContent===b.bait_flavor));
+    buildColorChips();
+    if(b.bait_color)document.querySelectorAll('#nb-color .color-chip').forEach(btn=>btn.classList.toggle('active',btn.textContent.trim()===b.bait_color));
+    if(b.bait_size){
+      document.querySelectorAll('#nb-size .seg-btn,#nb-size-boil .seg-btn').forEach(btn=>btn.classList.toggle('active',btn.textContent===b.bait_size));
+    }
+    document.getElementById('nb-time').value=toLocalDT(b.bitten_at);
+    if(b.notes)document.getElementById('nb-notes').value=b.notes;
+    const mb=document.querySelector('#new-bite-modal .modal-body');
+    if(mb)mb.scrollTop=0;
+  },50);
 }
 
 // STATS
@@ -1709,7 +2057,16 @@ function applyBgPhoto(dataUrl){
 }
 // Apply saved bg on load
 (function(){const bg=localStorage.getItem('app_bg_photo');if(bg)applyBgPhoto(bg)})();
-function closeModal(id){document.getElementById(id).classList.remove('open')}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='new-bite-modal'){
+    editBiteId=null;
+    const mt=document.querySelector('#new-bite-modal .modal-title');
+    if(mt)mt.textContent='Нова покльовка';
+    const nb=document.getElementById('nb-btn');
+    if(nb)nb.textContent='Зберегти покльовку';
+  }
+}
 // close modal on overlay click
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')});
