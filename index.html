@@ -197,17 +197,12 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 
 .bite-card{
   border-radius:var(--r);margin-bottom:8px;overflow:hidden;
-  position:relative;cursor:pointer;min-height:90px;
+  position:relative;min-height:90px;
   border:1px solid rgba(48,54,61,.8);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   box-shadow:0 3px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);
 }
-.bite-card-bg{
-  position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(15,31,53,.7) 0%,rgba(26,42,26,.6) 50%,rgba(13,17,23,.65) 100%);
-}
-.bite-card-overlay{position:absolute;inset:0;background:rgba(13,17,23,.45)}
-.bite-card-content{position:relative;z-index:1;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.bite-card-content{position:relative;z-index:1;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;min-height:90px}
 .bite-fish-col{display:flex;flex-direction:column;align-items:center;gap:4px;width:58px;min-width:58px;max-width:58px}
 .bite-fish-weight{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#e8453c;line-height:1;text-shadow:0 0 12px rgba(232,69,60,.35);white-space:nowrap}
 .bite-fish-kg{font-size:9px;color:rgba(232,69,60,.7);letter-spacing:.5px}
@@ -215,7 +210,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 .bite-divider{width:1px;background:var(--border2);align-self:stretch;flex-shrink:0}
 .bite-details{flex:1;min-width:0}
 .bite-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-.bite-tag{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:2px 7px;font-size:10px;color:var(--gold);font-weight:500}
+.bite-tag{background:rgba(232,184,109,.1);border:1px solid rgba(232,184,109,.25);border-radius:4px;padding:2px 7px;font-size:10px;color:#e8b86d;font-weight:500}
 .bite-tag-neutral{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:10px;color:var(--text2)}
 .bite-time{font-size:11px;color:var(--text3);margin-top:4px}
 .bite-notes{font-size:11px;color:var(--text2);margin-top:4px;font-style:italic;opacity:.8}
@@ -304,11 +299,10 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 .settings-section{margin-bottom:20px}
 .settings-title{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
 .settings-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.settings-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text);cursor:grab;user-select:none;touch-action:none;transition:.15s}
 .settings-tag.dragging{opacity:.4;cursor:grabbing}
 .settings-tag.drag-over{border-color:var(--gold);background:rgba(201,168,76,.12)}
 .settings-tag-drag{font-size:11px;color:var(--text3);cursor:grab;margin-right:2px}
-.settings-tag-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:0}
+.settings-tag-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:4px 6px;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center}
 .settings-add{display:flex;gap:8px;align-items:center}
 .settings-add input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none}
 .settings-add input:focus{border-color:var(--gold)}
@@ -332,7 +326,8 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 
 /* ===== BITE SWIPE ACTIONS ===== */
 .bite-card-wrap{position:relative;margin-bottom:8px;border-radius:var(--r);overflow:hidden}
-.bite-card-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch;z-index:0}
+.bite-card-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch;z-index:0;opacity:0;pointer-events:none;transition:opacity .2s}
+.bite-card-wrap.swiped .bite-card-actions{opacity:1;pointer-events:auto}
 .bite-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;border:none;cursor:pointer;font-size:20px;transition:.15s}
 .bite-action-edit{background:rgba(201,168,76,.85)}
 .bite-action-del{background:rgba(248,81,73,.85)}
@@ -486,14 +481,23 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 <div class="modal-overlay" id="new-bite-modal">
   <div class="modal" id="new-bite-modal-inner">
     <div class="modal-handle" id="nb-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
-    <div class="modal-head"><div class="modal-title">Нова покльовка</div></div>
+    <div class="modal-head"><div class="modal-title">Нова клювання</div></div>
     <div class="modal-body">
       <div class="field">
         <label>Вид риби</label>
         <div class="chip-group" id="nb-fish"></div>
       </div>
       <div class="row2">
-        <div class="field"><label>Вага (кг)</label><input type="text" inputmode="decimal" id="nb-weight" placeholder="" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:.2s;-webkit-appearance:none" oninput="this.value=this.value.replace(/,/,'.');if((this.value.match(/\./)||[]).length>1)this.value=this.value.slice(0,-1);const m=this.value.match(/^(\d*\.?\d{0,2})/);this.value=m?m[1]:''"></div>
+        <div class="field"><label>Вага (кг)</label><input type="text" inputmode="decimal" id="nb-weight" placeholder="" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:.2s;-webkit-appearance:none" oninput="
+          let v=this.value.replace(',','.');
+          // allow only digits and one dot
+          v=v.replace(/[^0-9.]/g,'');
+          const parts=v.split('.');
+          if(parts[0].length>2)parts[0]=parts[0].slice(0,2);
+          if(parts.length>1){parts[1]=parts[1].slice(0,2);v=parts[0]+'.'+parts[1];}
+          else v=parts[0];
+          this.value=v;
+        "></div>
         <div class="field"><label>Дистанція (м)</label><input type="number" id="nb-dist" placeholder="60" step="1" min="0"></div>
       </div>
       <div id="nb-spots-block" class="field" style="display:none">
@@ -538,11 +542,11 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
           <button class="seg-btn" onclick="selSeg('nb-size-boil',this)">24 мм</button>
         </div>
       </div>
-      <div class="field"><label>Час покльовки</label><input type="datetime-local" id="nb-time"></div>
+      <div class="field"><label>Час клювання</label><input type="datetime-local" id="nb-time"></div>
       <div class="field"><label>Нотатки (необов'язково)</label><textarea id="nb-notes" placeholder="Поведінка риби, особливості..."></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn-gold" id="nb-btn" onclick="saveBite()">Зберегти покльовку</button>
+      <button class="btn-gold" id="nb-btn" onclick="saveBite()">Зберегти клювання</button>
       <button class="cancel-btn" onclick="closeModal('new-bite-modal')">Скасувати</button>
     </div>
   </div>
@@ -643,6 +647,37 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
   </div>
 </div>
 
+<!-- FEEDING -->
+<div class="modal-overlay" id="feeding-modal">
+  <div class="modal" id="feeding-modal-inner">
+    <div class="modal-handle" id="feeding-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
+    <div class="modal-head"><div class="modal-title">🟤 Годування</div></div>
+    <div class="modal-body">
+      <div style="background:rgba(99,176,255,.08);border:1px solid rgba(99,176,255,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.8;display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:16px;color:#63b0ff;flex-shrink:0;margin-top:1px">ℹ</span>
+        <span><span style="color:var(--gold);font-weight:600">Mini</span> ~80г &nbsp;·&nbsp; <span style="color:var(--gold);font-weight:600">Midi</span> ~100г &nbsp;·&nbsp; <span style="color:var(--gold);font-weight:600">Large</span> ~140г</span>
+      </div>
+      <div id="feeding-total-block" style="margin-bottom:14px;text-align:center;display:none">
+        <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Вигодовано загалом</div>
+        <div id="feeding-total" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--gold2)">0 кг</div>
+      </div>
+      <div id="feeding-list" style="margin-bottom:14px"></div>
+      <div style="border-top:1px solid var(--border);padding-top:14px">
+        <div class="settings-title" style="margin-bottom:10px">Додати годування</div>
+        <div class="field"><label>Вага (кг)</label><input type="text" inputmode="decimal" id="feed-weight" placeholder="" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none" oninput="let v=this.value.replace(',','.');v=v.replace(/[^0-9.]/g,'');const p=v.split('.');if(p[0].length>2)p[0]=p[0].slice(0,2);if(p.length>1){p[1]=p[1].slice(0,2);v=p[0]+'.'+p[1];}else v=p[0];this.value=v;"></div>
+        <div class="field"><label>Дата та час</label><input type="datetime-local" id="feed-time"></div>
+        <div class="field"><label>Нотатка</label><input type="text" id="feed-notes" placeholder="Необов'язково"></div>
+        <button class="btn-gold" onclick="saveFeeding()">Додати</button>
+        <div style="height:8px"></div>
+        <button class="cancel-btn" onclick="closeModal('feeding-modal')">Закрити</button>
+        <div style="height:16px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 const SB_URL='https://imgzriiglnqazzdmulmo.supabase.co';
 const SB_KEY='sb_publishable_NqB1B4yG_aXf34ilbllFNQ_9YF2yeYv';
@@ -655,6 +690,28 @@ let selRodCount=2,curBaitType='popup';
 const DUR={Денна:12,Доба:24,'Дві доби':48};
 const UNWANTED=['⚠ Осетер','⚠ Товстолоб','Осетер','Товстолоб'];
 const COLOR_HEX={'Жовтий':'#f0d060','Помаранчевий':'#e07830','Рожевий':'#e060a0','Вимитий жовтий':'#d8c890','Білий':'#f0f0f0','Червоний':'#d03030'};
+const BAIT_TYPE_STYLE={
+  'Поп-ап':'background:rgba(126,184,212,.12);border:1px solid rgba(126,184,212,.3);color:#7eb8d4',
+  'Баланс':'background:rgba(155,196,160,.12);border:1px solid rgba(155,196,160,.3);color:#9bc4a0',
+  'Бойл':'background:rgba(196,168,130,.12);border:1px solid rgba(196,168,130,.3);color:#c4a882'
+};
+function coloredBaitStr(b,opts){
+  const o=opts||sessOpts||{baitType:true,flavor:true,color:true,size:true};
+  const parts=[];
+  if(o.baitType&&b.bait_type){
+    const st=BAIT_TYPE_STYLE[b.bait_type]||'background:rgba(196,168,130,.12);border:1px solid rgba(196,168,130,.3);color:#c4a882';
+    parts.push(`<span onclick="toggleBiteFilter('bait_type',this.innerText)" style="font-size:10px;font-weight:600;cursor:pointer;border-radius:5px;padding:4px 8px;${st}">${b.bait_type}</span>`);
+  }
+  if(o.flavor&&b.bait_flavor){
+    parts.push(`<span onclick="toggleBiteFilter('bait_flavor',this.innerText)" style="font-size:11px;font-weight:400;cursor:pointer;color:#a89bc4">${b.bait_flavor}</span>`);
+  }
+  if(o.color&&b.bait_color&&b.bait_type!=='Бойл'){
+    const hex=COLOR_HEX[b.bait_color]||'var(--text2)';
+    parts.push(`<span onclick="toggleBiteFilter('bait_color',this.innerText)" style="font-size:11px;font-weight:500;cursor:pointer;color:${hex}">${b.bait_color}</span>`);
+  }
+  if(o.size&&b.bait_size) parts.push(`<span onclick="toggleBiteFilter('bait_size',this.innerText)" style="font-size:10px;color:var(--text3);cursor:pointer">${b.bait_size}</span>`);
+  return parts.join(' ');
+}
 
 function toLocalDT(d){
   const dt=d?new Date(d):new Date();
@@ -804,8 +861,8 @@ async function loadSettings(){
 }
 async function saveSettings(){
   await sb.from('user_settings').upsert({...settings,updated_at:new Date().toISOString()});
+  document.getElementById('settings-modal').classList.remove('open');
   toast('✓ Налаштування збережено');
-  closeModal('settings-modal');
 }
 async function saveNickname(){
   const nick=document.getElementById('st-nick-input').value.trim();
@@ -860,7 +917,10 @@ function renderSettingsModal(){
 }
 
 let dragSrcKey=null,dragSrcIdx=null;
+let tagTouchClone=null,tagTouchEl=null,tagTouchKey=null,tagTouchIdx=null;
+
 function addTagDrag(el,key){
+  // desktop drag
   el.addEventListener('dragstart',e=>{
     dragSrcKey=key;dragSrcIdx=parseInt(el.dataset.idx);
     el.classList.add('dragging');
@@ -879,6 +939,48 @@ function addTagDrag(el,key){
       renderSettingsModal();
     }
   });
+  // touch drag
+  el.addEventListener('touchstart',e=>{
+    tagTouchEl=el;tagTouchKey=key;tagTouchIdx=parseInt(el.dataset.idx);
+    const rect=el.getBoundingClientRect();
+    tagTouchClone=el.cloneNode(true);
+    tagTouchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:.85;z-index:9999;pointer-events:none;transition:none;border-radius:20px`;
+    document.body.appendChild(tagTouchClone);
+    el.style.opacity='.3';
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    if(!tagTouchClone)return;
+    e.preventDefault();
+    const t=e.touches[0];
+    tagTouchClone.style.left=(t.clientX-40)+'px';
+    tagTouchClone.style.top=(t.clientY-16)+'px';
+    // highlight siblings
+    el.parentElement?.querySelectorAll('.settings-tag').forEach(s=>{
+      if(s===el)return;
+      const r=s.getBoundingClientRect();
+      s.classList.toggle('drag-over',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom);
+    });
+  },{passive:false});
+  el.addEventListener('touchend',e=>{
+    if(!tagTouchClone)return;
+    tagTouchClone.remove();tagTouchClone=null;
+    if(tagTouchEl)tagTouchEl.style.opacity='';
+    const t=e.changedTouches[0];
+    el.parentElement?.querySelectorAll('.settings-tag').forEach(s=>{
+      s.classList.remove('drag-over');
+      const r=s.getBoundingClientRect();
+      if(s!==el&&t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+        const toIdx=parseInt(s.dataset.idx);
+        if(tagTouchKey===key){
+          const arr=settings[key];
+          const [item]=arr.splice(tagTouchIdx,1);
+          arr.splice(toIdx,0,item);
+          renderSettingsModal();
+        }
+      }
+    });
+    tagTouchEl=null;tagTouchKey=null;tagTouchIdx=null;
+  },{passive:true});
 }
 let dragFishSrc=null;
 function addFishDrag(el,i){
@@ -948,10 +1050,10 @@ function goPage(p){
   const fab=document.getElementById('fab');
   const lbl=document.getElementById('fab-label');
   if(p==='home'){fab.classList.remove('hidden');lbl.textContent='Нова сесія'}
-  else if(p==='session'&&activeSess){fab.classList.remove('hidden');lbl.textContent='Покльовка'}
+  else if(p==='session'&&activeSess){fab.classList.remove('hidden');lbl.textContent='Клювання'}
   else{fab.classList.add('hidden')}
   if(p==='session')renderSession();
-  if(p==='stats')renderStats();
+  if(p==='stats'){statsMode='all';renderStats();}
 }
 function onFab(){
   const active=document.querySelector('.page.active');
@@ -1011,7 +1113,7 @@ function sessionCardHTML(s,active,weightMap={},countMap={}){
         <div class="session-meta-item">📅 <strong>${fmtDate(s.started_at)}</strong></div>
         <div class="session-meta-item">⏱ <strong>${fmtDur(s.duration_hours)}</strong></div>
         <div class="session-meta-item">🎣 <strong>${s.rods} вуд.</strong></div>
-        ${s.bait_program?`<div class="session-meta-item">🌿 ${s.bait_program}</div>`:''}
+        ${s.bait_program?`<div class="session-meta-item">${baitProgramEmoji(s.bait_program)} ${s.bait_program}</div>`:''}
       </div>
     </div>
   </div>`;
@@ -1042,13 +1144,16 @@ function renderSession(){
   const maxB=bites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
   let bitesHtml='';
   if(!bites.length){
-    bitesHtml=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon" style="font-size:32px">🐟</div><div class="empty-title" style="font-size:16px">Покльовок ще немає</div><div class="empty-sub">Натисни "+ Покльовка"</div></div>`;
+    bitesHtml=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon" style="font-size:32px">🐟</div><div class="empty-title" style="font-size:16px">Клювань ще немає</div><div class="empty-sub">Натисни "+ Клювання"</div></div>`;
   } else {
-    bites.forEach(b=>{bitesHtml+=biteCardHTML(b, activeSess?.started_at)});
+    bites.forEach((b,i)=>{bitesHtml+=biteCardHTML(b, activeSess?.started_at, true, bites.length-i)});
   }
   document.getElementById('session-content').innerHTML=`
     <div id="timer-block" class="timer-block">
-      <button onclick="openSessSpots()" style="position:absolute;top:10px;right:12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 9px;color:var(--gold);font-size:14px;cursor:pointer;z-index:2;line-height:1">⚙</button>
+      <div style="position:absolute;top:10px;right:12px;display:flex;gap:6px;z-index:2">
+        <button onclick="openFeeding()" style="background:rgba(139,90,43,.18);border:1px solid rgba(139,90,43,.4);border-radius:7px;padding:5px 9px;font-size:14px;cursor:pointer;line-height:1" title="Годування">🟤</button>
+        <button onclick="openSessSpots()" style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 9px;color:var(--gold);font-size:14px;cursor:pointer;line-height:1">⚙</button>
+      </div>
       <div class="timer-lake">${activeSess.lake_name}</div>
       <div class="timer-sector">Сектор ${activeSess.sector||'—'} · ${activeSess.rods} вуд. · ${activeSess.rig||''}</div>
       <div class="timer-digits" id="timer-digits">--:--:--</div>
@@ -1057,29 +1162,36 @@ function renderSession(){
     </div>
     ${weatherHtml}
     <div class="bites-summary">
-      <div class="summary-card"><div class="summary-num">${bites.length}</div><div class="summary-lbl">Покльовок</div></div>
+      <div class="summary-card"><div class="summary-num">${bites.length}</div><div class="summary-lbl">Клювань</div></div>
       <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
-      <div class="summary-card"><div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div><div class="summary-lbl">Big fish кг</div></div>
+      <div class="summary-card" onclick="scrollToBigFish()" style="cursor:pointer"><div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div><div class="summary-lbl">Big fish кг</div></div>
     </div>
-    <div class="section-label">Покльовки <span>${bites.length}</span></div>
-    ${bitesHtml}
+    <div class="section-label">Клювання <span>${bites.length}</span></div>
+    <div id="bites-list">${bitesHtml}</div>
     <div style="height:10px"></div>
     <button onclick="endSession()" style="width:100%;background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:11px;color:var(--text3);font-family:Inter,sans-serif;font-size:13px;cursor:pointer;margin-top:4px">Завершити сесію</button>
   `;
   updateTimer();
 }
 
-function biteCardHTML(b, sessStartedAt){
+function fmtDateShort(d){
+  const dt=new Date(d);
+  const day=String(dt.getDate()).padStart(2,'0');
+  const mon=String(dt.getMonth()+1).padStart(2,'0');
+  const h=String(dt.getHours()).padStart(2,'0');
+  const m=String(dt.getMinutes()).padStart(2,'0');
+  return `${day}.${mon} · ${h}:${m}`;
+}
+
+function biteCardHTML(b, sessStartedAt, showCopy=true, idx=null){
   const fishObj=(settings?.fish_types||[]).find(f=>f.name===b.fish_type);
   const uw=fishObj?fishObj.unwanted:UNWANTED.includes(b.fish_type);
-  const baitStr=[b.bait_type,b.bait_flavor,b.bait_color,b.bait_size].filter(Boolean).join(' · ');
-  const validIcon=uw
-    ? `<span class="bite-valid-icon invalid">✕</span>`
-    : '';
+  const validIcon=uw ? `<span class="bite-valid-icon invalid">✕</span>` : '';
+  // distance badge with target icon
   const distBadge=b.distance_m
-    ? `<div class="bite-dist-badge">${b.distance_m} м.</div>`
+    ? `<div class="bite-dist-badge" onclick="toggleBiteFilter('distance_m',${b.distance_m})" style="cursor:pointer"><svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px;opacity:.8"><circle cx="5.5" cy="5.5" r="4.5" fill="none" stroke="#63b0ff" stroke-width="1"/><circle cx="5.5" cy="5.5" r="2" fill="none" stroke="#63b0ff" stroke-width="1"/><circle cx="5.5" cy="5.5" r=".8" fill="#63b0ff"/></svg>${b.distance_m} м.</div>`
     : '';
-  // elapsed time from session start
+  // elapsed time with timer icon
   let elapsedStr='';
   const startTs=sessStartedAt?new Date(sessStartedAt):null;
   if(startTs&&b.bitten_at){
@@ -1087,7 +1199,7 @@ function biteCardHTML(b, sessStartedAt){
     if(diff>=0){
       const eh=Math.floor(diff/3600000);
       const em=Math.floor((diff%3600000)/60000);
-      elapsedStr=` <span style="color:var(--text3);font-size:10px">(${eh} год. ${String(em).padStart(2,'0')} хв від поч.)</span>`;
+      elapsedStr=` <span style="color:var(--text3);font-size:10px">(<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:2px"><circle cx="5.5" cy="6.5" r="3.8" fill="none" stroke="white" stroke-width="1" opacity=".75"/><line x1="5.5" y1="6.5" x2="5.5" y2="4.2" stroke="white" stroke-width="1" stroke-linecap="round" opacity=".75"/><line x1="5.5" y1="6.5" x2="7.5" y2="6.5" stroke="white" stroke-width="1" stroke-linecap="round" opacity=".75"/><line x1="3.5" y1="2.2" x2="7.5" y2="2.2" stroke="white" stroke-width=".9" stroke-linecap="round" opacity=".75"/><line x1="5.5" y1="1.2" x2="5.5" y2="2.4" stroke="white" stroke-width=".9" stroke-linecap="round" opacity=".75"/><line x1="8.8" y1="3.5" x2="9.8" y2="2.5" stroke="white" stroke-width=".9" stroke-linecap="round" opacity=".75"/></svg>${eh} год ${String(em).padStart(2,'0')} хв)</span>`;
     }
   }
   return `<div class="bite-card-wrap" id="bcw-${b.id}">
@@ -1095,28 +1207,28 @@ function biteCardHTML(b, sessStartedAt){
       <button class="bite-action-btn bite-action-edit" onclick="editBite('${b.id}')" title="Редагувати">✏️</button>
       <button class="bite-action-btn bite-action-del" onclick="deleteBite('${b.id}')" title="Видалити">🗑</button>
     </div>
-    <div class="bite-card" ontouchstart="swipeStart(event,'${b.id}')" ontouchend="swipeEnd(event,'${b.id}')">
+    <div class="bite-card" ontouchstart="swipeStart(event,'${b.id}')" ontouchend="swipeEnd(event,'${b.id}')" style="cursor:default">
     <div class="bite-card-bg"></div>
     <div class="bite-card-overlay"></div>
     ${validIcon}
-    <button onclick="copyBite(${JSON.stringify(b).replace(/"/g,'&quot;')})" style="position:absolute;top:7px;right:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;padding:3px 8px;color:var(--gold);font-size:13px;cursor:pointer;z-index:2;line-height:1">⧉</button>
+    ${showCopy?`<button onclick="copyBite(${JSON.stringify(b).replace(/"/g,'&quot;')})" style="position:absolute;top:7px;right:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;padding:3px 8px;color:var(--gold);font-size:13px;cursor:pointer;z-index:2;line-height:1">⧉</button>`:''}
     <div class="bite-card-content">
       <div class="bite-fish-col">
-        <div class="bite-fish-weight">${b.weight||'—'}</div>
-        <div class="bite-fish-kg">кг</div>
-        <div class="bite-fish-name">${b.fish_type}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#e05c5c;line-height:1;white-space:nowrap;text-shadow:0 0 14px rgba(224,92,92,.2)">${b.weight||'—'}</div>
+        <div style="font-size:9px;color:var(--text3);letter-spacing:.5px;margin-top:1px">кг</div>
+        <div style="font-size:9px;color:var(--text2);text-align:center;line-height:1.2;margin-top:3px">${b.fish_type}</div>
       </div>
       <div class="bite-divider"></div>
       <div class="bite-details">
-        <div class="bite-row">
-          ${b.rod_number?`<span class="bite-tag" onclick="showPegTooltip(event,${b.rod_number})" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:''}
+        <div class="bite-row" style="min-height:22px">
+          ${b.rod_number&&sessOpts.rod?`<span class="bite-tag" onclick="showPegTooltip(event,${b.rod_number})" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:``}
         </div>
-        ${baitStr?`<div class="bite-row"><span class="bite-tag-neutral" style="font-size:11px">${baitStr}</span></div>`:''}
-        <div class="bite-time">${fmtDateTime(b.bitten_at)}${elapsedStr}</div>
+        <div class="bite-row" style="flex-wrap:wrap;gap:4px;min-height:22px">${(sessOpts.baitType||sessOpts.flavor||sessOpts.color||sessOpts.size)?coloredBaitStr(b,sessOpts):''}</div>
+        <div class="bite-time" style="min-height:16px">${sessOpts.datetime?`<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px;color:var(--gold)"><rect x="1" y="2" width="9" height="8" rx="1.5" fill="none" stroke="white" stroke-width="1" opacity=".7"/><line x1="1" y1="4.5" x2="10" y2="4.5" stroke="white" stroke-width=".8" opacity=".7"/><line x1="3.5" y1="1" x2="3.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/><line x1="7.5" y1="1" x2="7.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/></svg>${fmtDateShort(b.bitten_at)}${sessOpts.elapsed?elapsedStr:''}`:''}</div>
         ${b.notes?`<div class="bite-notes">${b.notes}</div>`:''}
       </div>
     </div>
-    ${distBadge}
+    ${sessOpts.dist?distBadge:''}
   </div>
   </div>`;
 }
@@ -1137,7 +1249,21 @@ function updateTimer(){
   const starts=new Date(activeSess.started_at);
   const total=ends-starts;
   const left=ends-now;
-  if(left<=0){el.textContent='0 год. 00 хв.';if(fill)fill.style.width='100%';return}
+  if(left<=0){
+    const overtime=now-ends;
+    const grace=172800000; // 48h grace
+    if(overtime>grace){
+      // auto-end after 48h overtime
+      endSession();return;
+    }
+    const oh=Math.floor(overtime/3600000);
+    const om=Math.floor((overtime%3600000)/60000);
+    el.textContent=`+${oh} год. ${String(om).padStart(2,'0')} хв.`;
+    el.style.color='var(--orange)';
+    if(fill)fill.style.width='100%';
+    return;
+  }
+  el.style.color='';
   const pct=Math.round((1-left/total)*100);
   if(fill)fill.style.width=pct+'%';
   const h=Math.floor(left/3600000);
@@ -1167,7 +1293,7 @@ async function fetchWeather(){
 
 // NEW SESSION MODAL
 function openNewSession(){
-  if(activeSess){toast('⚠ Спочатку завершіть поточну сесію');return}
+  if(activeSess){showHermioneDialog();return}
   const sel=document.getElementById('ns-lake');
   sel.innerHTML=(settings?.lakes||[]).map(l=>`<option>${l}</option>`).join('');
   document.getElementById('ns-start').value=toLocalDT();
@@ -1177,6 +1303,48 @@ function openNewSession(){
   selRod(2);
   updateSessionEnd();
   openModal('new-session-modal');
+}
+
+function showHermioneDialog(){
+  const overlay=document.createElement('div');
+  overlay.id='hermione-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+  overlay.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:300px;width:90%;text-align:center;position:relative">
+      <div style="font-size:44px;margin-bottom:12px">🧙‍♀️</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:8px">Ти що, Герміона?</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:24px">Одна сесія за раз, будь ласка!</div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button id="herm-yes" onclick="hermioneYes(event)" style="background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.4);border-radius:10px;padding:10px 24px;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;position:relative;transition:none">Так</button>
+        <button onclick="hermioneNo()" style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);border-radius:10px;padding:10px 24px;color:var(--gold);font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Ні</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function hermioneYes(e){
+  const btn=document.getElementById('herm-yes');
+  if(!btn)return;
+  // button runs away from finger/cursor
+  const overlay=document.getElementById('hermione-overlay');
+  const box=overlay.querySelector('div');
+  const bRect=btn.getBoundingClientRect();
+  const boxRect=box.getBoundingClientRect();
+  // pick random direction to escape
+  const angle=Math.random()*Math.PI*2;
+  const dist=80+Math.random()*60;
+  let nx=bRect.left-boxRect.left+Math.cos(angle)*dist;
+  let ny=bRect.top-boxRect.top+Math.sin(angle)*dist;
+  // clamp inside box
+  nx=Math.max(0,Math.min(boxRect.width-bRect.width,nx));
+  ny=Math.max(0,Math.min(boxRect.height-bRect.height,ny));
+  btn.style.cssText+=`;position:absolute;left:${nx}px;top:${ny}px;transition:left .25s cubic-bezier(.4,0,.2,1),top .25s cubic-bezier(.4,0,.2,1)`;
+  // shake the emoji
+  const emoji=overlay.querySelector('div div');
+  if(emoji){emoji.style.transition='transform .1s';emoji.style.transform='rotate(-15deg)';setTimeout(()=>emoji.style.transform='rotate(15deg)',100);setTimeout(()=>emoji.style.transform='',200);}
+}
+function hermioneNo(){
+  const el=document.getElementById('hermione-overlay');
+  if(el)el.remove();
 }
 function updateSessionEnd(){
   const startVal=document.getElementById('ns-start').value;
@@ -1257,7 +1425,7 @@ async function openArchiveSession(sessId){
 
   let bitesHtml='';
   if(!sb_bites.length){
-    bitesHtml=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Покльовок не було</div>`;
+    bitesHtml=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Клювань не було</div>`;
   } else {
     sb_bites.forEach(b=>{bitesHtml+=biteCardHTML(b, sess.started_at)});
   }
@@ -1269,16 +1437,16 @@ async function openArchiveSession(sessId){
         <span class="session-meta-item">⏱ <strong>${fmtDur(sess.duration_hours)}</strong></span>
         <span class="session-meta-item">🎣 <strong>${sess.rods} вуд.</strong></span>
         ${sess.rig?`<span class="session-meta-item">🪝 <strong>${sess.rig}</strong></span>`:''}
-        ${sess.bait_program?`<span class="session-meta-item">🌿 ${sess.bait_program}</span>`:''}
+        ${sess.bait_program?`<span class="session-meta-item">${baitProgramEmoji(sess.bait_program)} ${sess.bait_program}</span>`:''}
       </div>
     </div>
     ${weatherHtml}
     <div class="bites-summary" style="margin-bottom:14px">
-      <div class="summary-card"><div class="summary-num">${sb_bites.length}</div><div class="summary-lbl">Покльовок</div></div>
+      <div class="summary-card"><div class="summary-num">${sb_bites.length}</div><div class="summary-lbl">Клювань</div></div>
       <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
       <div class="summary-card"><div class="summary-num">${maxB?(maxB.weight||'—'):'—'}</div><div class="summary-lbl">Рекорд кг</div></div>
     </div>
-    <div class="section-label" style="margin-bottom:10px">Покльовки <span>${sb_bites.length}</span></div>
+    <div class="section-label" style="margin-bottom:10px">Клювання <span>${sb_bites.length}</span></div>
     ${bitesHtml}
     <div style="height:8px"></div>
   `;
@@ -1295,9 +1463,9 @@ function openNewBite(){
   document.getElementById('nb-time').value=toLocalDT();
   // reset title/button
   const mt=document.querySelector('#new-bite-modal .modal-title');
-  if(mt)mt.textContent='Нова покльовка';
+  if(mt)mt.textContent='Нова клювання';
   const nb=document.getElementById('nb-btn');
-  if(nb)nb.textContent='Зберегти покльовку';
+  if(nb)nb.textContent='Зберегти клювання';
   // build fish chips from settings
   buildFishChips();
   // rods
@@ -1421,24 +1589,31 @@ async function saveBite(){
     notes,is_unwanted:isUnwanted,
     bitten_at:timeVal?new Date(timeVal).toISOString():new Date().toISOString()
   };
-  let error;
+  let error,savedBite;
   if(editBiteId){
-    ({error}=await sb.from('bites').update(bitePayload).eq('id',editBiteId));
+    const res=await sb.from('bites').update(bitePayload).eq('id',editBiteId).select().single();
+    error=res.error;savedBite=res.data;
     editBiteId=null;
   } else {
-    ({error}=await sb.from('bites').insert({user_id:user.id,session_id:activeSess.id,...bitePayload}));
+    const res=await sb.from('bites').insert({user_id:user.id,session_id:activeSess.id,...bitePayload}).select().single();
+    error=res.error;savedBite=res.data;
   }
-  btn.disabled=false;btn.textContent='Зберегти покльовку';
+  btn.disabled=false;btn.textContent='Зберегти клювання';
   if(error){toast('Помилка: '+error.message);return}
+  // update local array first
+  if(savedBite){
+    const existing=bites.findIndex(b=>b.id===savedBite.id);
+    if(existing>=0)bites[existing]=savedBite;
+    else bites.push(savedBite);
+  }
   closeModal('new-bite-modal');
-  // reset modal title
-  const mt=document.querySelector('#new-bite-modal .modal-title');
-  if(mt)mt.textContent='Нова покльовка';
-  toast(isUnwanted?'⚠ Небажана риба зафіксована':'✓ Покльовку збережено!');
-  await loadBites(activeSess.id);
-  const contentEl=document.querySelector('.content');
-  contentEl.scrollTop=contentEl.scrollHeight;
-  renderSession();
+  toast(isUnwanted?'⚠ Небажана риба зафіксована':'✓ Клювання збережено!');
+  // wait for modal close animation then re-render
+  setTimeout(async()=>{
+    if(!savedBite) await loadBites(activeSess.id);
+    renderSession();
+    setTimeout(()=>{const c=document.querySelector('.content');if(c)c.scrollTop=c.scrollHeight;},50);
+  },320);
 }
 
 // ===== SESSION SPOTS =====
@@ -1446,17 +1621,30 @@ async function saveBite(){
 // sessPegDist: number (meters between pegs)
 let sessSpots=[];
 let sessPegDist=5;
+let sessShowRod=false;
+let sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};
 
 function loadSessSpots(){
   try{
     const raw=localStorage.getItem('sess_spots_'+activeSess?.id);
-    if(raw){const p=JSON.parse(raw);sessSpots=p.spots||[];sessPegDist=p.pegDist||5;}
-    else{sessSpots=[];sessPegDist=5;}
-  }catch{sessSpots=[];sessPegDist=5;}
+    if(raw){
+      const p=JSON.parse(raw);
+      sessSpots=p.spots||[];sessPegDist=p.pegDist||5;sessShowRod=p.showRod||false;
+      sessOpts=Object.assign({rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true},p.opts||{});
+    } else {sessSpots=[];sessPegDist=5;sessShowRod=false;sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};}
+  }catch{sessSpots=[];sessPegDist=5;sessShowRod=false;sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};}
 }
 function saveSessSpots(){
   if(!activeSess)return;
-  localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist}));
+  localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist,showRod:sessShowRod,opts:sessOpts}));
+}
+function toggleSessOpt(key){
+  sessOpts[key]=!sessOpts[key];
+  if(key==='rod')sessShowRod=sessOpts.rod;
+  saveSessSpots();
+  renderSessSpots();
+  // re-render bites list immediately
+  if(document.getElementById('bites-list'))renderBitesList();
 }
 
 function openSessSpots(){
@@ -1505,14 +1693,14 @@ function renderSessSpots(){
   `;
 
   sessSpots.forEach((spot,si)=>{
-    const pegs=spot.dist&&sessPegDist?Math.round(spot.dist/sessPegDist):null;
+    const pegs=spot.dist&&sessPegDist?(spot.dist/sessPegDist).toFixed(1):null;
     html+=`<div class="spot-row${spot.active===false?' inactive':''}">
       <div class="spot-header">
         <input value="${spot.name}" onchange="renameSpot(${si},this.value)" style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;font-family:Inter,sans-serif;outline:none;padding:2px 0">
         <input type="number" value="${spot.dist||''}" placeholder="м" onchange="setSpotDist(${si},this.value)" style="width:52px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:#63b0ff;font-size:12px;font-family:Inter,sans-serif;outline:none;padding:3px 6px;text-align:center">
         ${pegs?`<span class="spot-pegs">(${pegs} кіл)</span>`:''}
         <button onclick="toggleSpot(${si})" style="background:transparent;border:1px solid var(--border2);border-radius:5px;padding:3px 7px;font-size:10px;color:${spot.active===false?'var(--gold)':'var(--text3)'};cursor:pointer;font-family:Inter,sans-serif">${spot.active===false?'↩ Активувати':'Деактив.'}</button>
-        <button onclick="delSpot(${si})" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px">×</button>
+        <button onclick="delSpot(${si})" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:6px 8px;min-width:36px;min-height:36px">×</button>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Перетягни вудилища:</div>
       <div class="spot-rods" data-si="${si}"
@@ -1533,9 +1721,30 @@ function renderSessSpots(){
     </div>`;
   });
 
-  html+=`<div style="height:16px"></div>
-    <button class="btn-gold" onclick="closeSessSpots()">Готово</button>
-    <div style="height:20px"></div>`;
+  const optList=[
+    {key:'rod',label:'Вудилище'},
+    {key:'dist',label:'Відстань'},
+    {key:'baitType',label:'Вид насадки'},
+    {key:'flavor',label:'Смак насадки'},
+    {key:'color',label:'Колір насадки'},
+    {key:'size',label:'Розмір насадки'},
+    {key:'datetime',label:'Дата та час'},
+    {key:'elapsed',label:'Час від початку'},
+  ];
+  html+=`<div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+    <div class="settings-title" style="margin-bottom:10px">Показувати в картці клювання</div>
+    ${optList.map(({key,label})=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(48,54,61,.4)">
+        <span style="font-size:13px;color:var(--text)">${label}</span>
+        <div onclick="toggleSessOpt('${key}')" style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0">
+          <div style="position:absolute;inset:0;background:${sessOpts[key]?'var(--gold)':'var(--surface2)'};border-radius:12px;transition:.2s"></div>
+          <div style="position:absolute;left:${sessOpts[key]?'22':'2'}px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s"></div>
+        </div>
+      </div>`).join('')}
+  </div>
+  <div style="height:16px"></div>
+  <button class="btn-gold" onclick="closeSessSpots()">Готово</button>
+  <div style="height:20px"></div>`;
 
   body.innerHTML=html;
 }
@@ -1731,7 +1940,7 @@ function showPegTooltip(e,rodNum){
   if(activeSess)loadSessSpots();
   const spot=sessSpots.find(s=>(s.rods||[]).includes(rodNum)&&s.active!==false);
   if(!spot||!spot.dist||!sessPegDist)return;
-  const pegs=Math.round(spot.dist/sessPegDist);
+  const pegs=(spot.dist/sessPegDist).toFixed(1);
   // remove any existing tip
   document.querySelectorAll('.peg-tooltip').forEach(t=>t.remove());
   const tip=document.createElement('div');
@@ -1743,20 +1952,102 @@ function showPegTooltip(e,rodNum){
   setTimeout(()=>tip.remove(),4000);
 }
 
-// ===== SWIPE TO REVEAL =====
-let swipeTouchX=0,swipeActive=null;
+function viewBite(id){
+  const b=bites.find(x=>x.id===id);
+  if(!b)return;
+  const baitStr=[b.bait_type,b.bait_flavor,b.bait_color,b.bait_size].filter(Boolean).join(' · ');
+  const startTs=activeSess?.started_at?new Date(activeSess.started_at):null;
+  let elapsedStr='';
+  if(startTs&&b.bitten_at){
+    const diff=new Date(b.bitten_at)-startTs;
+    if(diff>=0){const eh=Math.floor(diff/3600000);const em=Math.floor((diff%3600000)/60000);elapsedStr=`${eh} год. ${String(em).padStart(2,'0')} хв від початку`;}
+  }
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove()};
+  overlay.innerHTML=`
+    <div style="background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:24px 20px 36px;border-top:1px solid var(--border)">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px"></div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div style="text-align:center;min-width:64px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:#e8453c;line-height:1">${b.weight||'—'}</div>
+          <div style="font-size:11px;color:rgba(232,69,60,.7)">кг</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">${b.fish_type}</div>
+        </div>
+        <div style="flex:1;border-left:1px solid var(--border2);padding-left:16px">
+          ${b.rod_number?`<div style="font-size:13px;color:var(--gold);font-weight:600;margin-bottom:6px">Вуд. ${b.rod_number}</div>`:''}
+          ${baitStr?`<div style="font-size:12px;color:var(--text2);margin-bottom:6px">${baitStr}</div>`:''}
+          ${b.distance_m?`<div style="font-size:12px;color:#63b0ff;margin-bottom:6px">${b.distance_m} м.</div>`:''}
+          <div style="font-size:11px;color:var(--text3)">${fmtDateTime(b.bitten_at)}</div>
+          ${elapsedStr?`<div style="font-size:11px;color:var(--text3)">${elapsedStr}</div>`:''}
+          ${b.notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic">${b.notes}</div>`:''}
+        </div>
+      </div>
+      <button onclick="this.closest('div[style]').remove()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px;color:var(--text2);font-family:Inter,sans-serif;font-size:14px;cursor:pointer">Закрити</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function scrollToBigFish(){
+  const maxB=bites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
+  if(!maxB)return;
+  const el=document.getElementById('bcw-'+maxB.id);
+  if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  // gold glow highlight
+  setTimeout(()=>{
+    el.style.transition='box-shadow .3s';
+    el.style.boxShadow='0 0 0 2px var(--gold),0 0 20px rgba(201,168,76,.5)';
+    el.style.borderRadius='var(--r)';
+    setTimeout(()=>{el.style.boxShadow='';},1200);
+  },400);
+}
+// ===== BITE FILTERS =====
+let biteFilters={};
+function toggleBiteFilter(key,val){
+  if(biteFilters[key]===val)delete biteFilters[key];
+  else biteFilters[key]=val;
+  renderBitesList();
+}
+function clearBiteFilters(){biteFilters={};renderBitesList();}
+function renderBitesList(){
+  const filtered=bites.filter(b=>{
+    for(const [k,v] of Object.entries(biteFilters)){
+      if(k==='distance_m'){if(Number(b[k])!==Number(v))return false;}
+      else if(b[k]!==v)return false;
+    }
+    return true;
+  });
+  const tags=Object.entries(biteFilters).map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:3px 8px;font-size:11px;color:var(--gold)">${v}<button onclick="toggleBiteFilter('${k}','${v}')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;padding:2px 4px;line-height:1;min-width:22px;min-height:22px">×</button></span>`).join('');
+  const filterBar=Object.keys(biteFilters).length?
+    `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding:4px 0">
+       <span style="font-size:13px">🔍</span>${tags}
+       <button onclick="clearBiteFilters()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline">Скинути</button>
+    </div>`:'';
+  const lbl=document.querySelector('.section-label');
+  if(lbl)lbl.innerHTML=`Клювання <span>${filtered.length}${Object.keys(biteFilters).length?' / '+bites.length:''}</span>`;
+  let html=filterBar;
+  if(!filtered.length)html+=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Немає клювань за фільтром</div>`;
+  else filtered.forEach((b,i)=>{html+=biteCardHTML(b,activeSess?.started_at,true,filtered.length-i);});
+  const bl=document.getElementById('bites-list');
+  if(bl)bl.innerHTML=html;
+}
+
+let swipeTouchX=0,swipeActive=null,swipeMoved=false;
 function swipeStart(e,id){
   swipeTouchX=e.touches[0].clientX;
   swipeActive=id;
+  swipeMoved=false;
 }
 function swipeEnd(e,id){
   const dx=swipeTouchX-e.changedTouches[0].clientX;
   const wrap=document.getElementById('bcw-'+id);
   if(!wrap)return;
+  if(Math.abs(dx)>15)swipeMoved=true;
   if(dx>40){
-    // swipe left — reveal actions, close others
     document.querySelectorAll('.bite-card-wrap.swiped').forEach(el=>{if(el.id!=='bcw-'+id)el.classList.remove('swiped')});
     wrap.classList.add('swiped');
+    e.preventDefault();
   } else if(dx<-20){
     wrap.classList.remove('swiped');
   }
@@ -1769,7 +2060,7 @@ document.addEventListener('touchstart',e=>{
 
 // DELETE BITE
 async function deleteBite(id){
-  if(!confirm('Видалити цю покльовку?'))return;
+  if(!confirm('Видалити цю клювання?'))return;
   // instantly remove from DOM
   const wrap=document.getElementById('bcw-'+id);
   if(wrap){wrap.style.transition='opacity .2s';wrap.style.opacity='0';setTimeout(()=>wrap.remove(),200);}
@@ -1788,7 +2079,7 @@ async function deleteBite(id){
   if(lblEl)lblEl.textContent=bites.length;
   // delete from DB in background
   await sb.from('bites').delete().eq('id',id);
-  toast('✓ Покльовку видалено');
+  toast('✓ Клювання видалено');
 }
 
 // EDIT BITE
@@ -1801,7 +2092,7 @@ function editBite(id){
   editBiteId=id;
   openNewBite();
   setTimeout(()=>{
-    document.querySelector('#new-bite-modal .modal-title').textContent='Редагувати покльовку';
+    document.querySelector('#new-bite-modal .modal-title').textContent='Редагувати клювання';
     document.getElementById('nb-btn').textContent='Зберегти зміни';
     buildFishChips();
     document.querySelectorAll('#nb-fish .chip').forEach(btn=>{
@@ -1868,55 +2159,190 @@ setTimeout(()=>{
   initSwipeDown('nb-handle','new-bite-modal-inner','new-bite-modal');
   initSwipeDown('settings-handle','settings-modal-inner','settings-modal');
   initSwipeDown('sess-spots-handle','sess-spots-modal-inner','sess-spots-modal');
+  initSwipeDown('feeding-handle','feeding-modal-inner','feeding-modal');
 },500);
+
+// ===== FEEDING =====
+function loadFeedings(){
+  try{return JSON.parse(localStorage.getItem('feedings_'+activeSess?.id)||'[]');}catch{return[];}
+}
+function saveFeedings(arr){localStorage.setItem('feedings_'+activeSess?.id,JSON.stringify(arr));}
+
+function openFeeding(){
+  document.getElementById('feed-weight').value='';
+  document.getElementById('feed-time').value=toLocalDT();
+  document.getElementById('feed-notes').value='';
+  renderFeedingList();
+  openModal('feeding-modal');
+}
+function renderFeedingList(){
+  const feedings=loadFeedings();
+  const total=feedings.reduce((s,f)=>s+(parseFloat(f.weight)||0),0);
+  const totalBlock=document.getElementById('feeding-total-block');
+  const totalEl=document.getElementById('feeding-total');
+  if(feedings.length){totalBlock.style.display='';totalEl.textContent=total.toFixed(2)+' кг';}
+  else{totalBlock.style.display='none';}
+  const list=document.getElementById('feeding-list');
+  if(!feedings.length){list.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:10px 0">Годувань ще немає</div>';return;}
+  list.innerHTML=`<div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Годувань: ${feedings.length}</div>`+feedings.map((f,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.25);border-radius:var(--r);padding:10px 12px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">🟤</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--gold2)">${parseFloat(f.weight).toFixed(2)} кг</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">${fmtDateTime(f.time)}</div>
+          ${f.notes?`<div style="font-size:11px;color:var(--text2);font-style:italic;margin-top:2px">${f.notes}</div>`:''}
+        </div>
+      </div>
+      <button onclick="deleteFeeding(${i})" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+    </div>
+  `).join('');
+}
+function saveFeeding(){
+  const raw=(document.getElementById('feed-weight').value||'').replace(',','.');
+  const w=parseFloat(raw)||null;
+  if(!w){toast('⚠ Вкажіть вагу');return;}
+  const t=document.getElementById('feed-time').value;
+  const n=document.getElementById('feed-notes').value.trim();
+  const feedings=loadFeedings();
+  feedings.push({weight:w,time:t?new Date(t).toISOString():new Date().toISOString(),notes:n});
+  saveFeedings(feedings);
+  document.getElementById('feed-weight').value='';
+  document.getElementById('feed-notes').value='';
+  document.getElementById('feed-time').value=toLocalDT();
+  renderFeedingList();
+  toast('✓ Годування додано');
+}
+function deleteFeeding(i){
+  const feedings=loadFeedings();
+  feedings.splice(i,1);
+  saveFeedings(feedings);
+  renderFeedingList();
+}
+function getFeedingTotal(sessId){
+  try{return JSON.parse(localStorage.getItem('feedings_'+sessId)||'[]').reduce((s,f)=>s+(parseFloat(f.weight)||0),0);}catch{return 0;}
+}
+
+// ===== BITES LIST OVERLAY (for stats taps) =====
+function showBitesList(bitesArr,title){
+  if(!bitesArr||!bitesArr.length){toast('Немає клювань для відображення');return;}
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  const sessStart=activeSess?.started_at;
+  let cardsHtml='';
+  const saved=Object.assign({},sessOpts);
+  Object.assign(sessOpts,{rod:true,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true});
+  bitesArr.forEach(b=>{cardsHtml+=biteCardHTML(b,sessStart,false);});
+  Object.assign(sessOpts,saved);
+  overlay.innerHTML=`<div style="background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:430px;height:72dvh;display:flex;flex-direction:column;border-top:1px solid var(--border)">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 0;flex-shrink:0"></div>
+    <div style="padding:10px 20px 8px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold2)">${title} <span style="font-size:13px;color:var(--text3)">(${bitesArr.length})</span></div>
+      <button id="bl-close-btn" style="background:transparent;border:none;color:var(--text3);font-size:24px;cursor:pointer;line-height:1;padding:4px 8px">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 14px 24px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--border2) transparent">${cardsHtml}</div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#bl-close-btn').onclick=()=>overlay.remove();
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+}
 
 // STATS
 let statsMode='all'; // 'all' | 'session'
 let statsSessionId=null;
 
+// 3. Bait program emoji mapping
+function baitProgramEmoji(prog){
+  if(!prog)return'🌿';
+  const p=prog.toLowerCase();
+  if(p.includes('squid')&&p.includes('blood'))return'🦑🪱';
+  if(p.includes('squid'))return'🦑';
+  if(p.includes('blood'))return'🪱';
+  if(p.includes('belachan'))return'🦐';
+  if(p.includes('krill'))return'🦐';
+  if(p.includes('robin red')||p.includes('robin'))return'🌶️';
+  if(p.includes('halibut'))return'🐟';
+  if(p.includes('tiger'))return'🌰';
+  if(p.includes('strawberry'))return'🍓';
+  if(p.includes('mulberry'))return'🫐';
+  if(p.includes('corn')||p.includes('кукурудз'))return'🌽';
+  if(p.includes('scopex'))return'🍬';
+  if(p.includes('banana')||p.includes('банан'))return'🍌';
+  if(p.includes('pineapple')||p.includes('ананас'))return'🍍';
+  if(p.includes('salmon')||p.includes('лосось'))return'🐠';
+  return'🌿';
+}
+
 async function renderStats(){
   const el=document.getElementById('stats-content');
+  el.innerHTML=`<div class="seg" style="margin-bottom:14px" id="stats-mode-seg">
+      <button class="seg-btn active" onclick="setStatsMode('all')">Загальна</button>
+      <button class="seg-btn" onclick="setStatsMode('session')">По сесії</button>
+    </div><div id="stats-body"><div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">Завантаження...</div></div>`;
   const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
   if(!allSess?.length){
-    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Ще немає даних</div><div class="empty-sub">Статистика з'явиться<br>після першої покльовки</div></div>`;
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Ще немає даних</div><div class="empty-sub">Статистика з'явиться<br>після першого клювання</div></div>`;
     return;
   }
-  // build session selector options
-  const sessOptions=allSess.map(s=>`<option value="${s.id}" ${s.id===statsSessionId?'selected':''}>${s.lake_name} · сект. ${s.sector||'—'} · ${fmtDate(s.started_at)}</option>`).join('');
   if(!statsSessionId)statsSessionId=allSess[0].id;
-
-  // switcher HTML — rendered first so user sees it immediately
-  const switcherHtml=`
-    <div class="seg" style="margin-bottom:14px" id="stats-mode-seg">
-      <button class="seg-btn ${statsMode==='all'?'active':''}" onclick="setStatsMode('all')">Загальна</button>
-      <button class="seg-btn ${statsMode==='session'?'active':''}" onclick="setStatsMode('session')">По сесії</button>
-    </div>
-    <div id="stats-sess-select" style="display:${statsMode==='session'?'block':'none'};margin-bottom:14px">
-      <select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px;color:var(--text);font-family:Inter,sans-serif;font-size:13px;outline:none;-webkit-appearance:none" onchange="onStatsSessChange(this.value)">
-        ${sessOptions}
-      </select>
-    </div>
-    <div id="stats-body"></div>
-  `;
-  el.innerHTML=switcherHtml;
-
   await renderStatsBody();
+}
+
+function fmtDateRange(start,end){
+  const s=new Date(start);
+  const e=end?new Date(end):null;
+  const d=n=>String(n).padStart(2,'0');
+  const sd=`${d(s.getDate())}.${d(s.getMonth()+1)}`;
+  if(!e)return sd;
+  const ed=`${d(e.getDate())}.${d(e.getMonth()+1)}`;
+  return sd===ed?sd:`${sd}-${ed}`;
+}
+
+function renderSessionCards(allSess){
+  const el=document.getElementById('stats-body');
+  if(!allSess?.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">Немає сесій</div>';return;}
+  el.innerHTML=allSess.map(s=>{
+    const dateRange=fmtDateRange(s.started_at,s.ends_at);
+    const dur=s.duration_hours?fmtDur(s.duration_hours):'—';
+    return `<div onclick="openSessionStats('${s.id}')" style="background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;backdrop-filter:blur(10px)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${s.lake_name||'Водойма'}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Сектор ${s.sector||'—'} · ${dateRange} · ${dur}</div>
+        </div>
+        <span style="font-size:18px;color:var(--text3)">›</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openSessionStats(sessId){
+  statsSessionId=sessId;
+  const el=document.getElementById('stats-body');
+  el.innerHTML=`<button onclick="backToSessionList()" style="display:flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--gold);font-size:13px;cursor:pointer;font-family:Inter,sans-serif;margin-bottom:14px;padding:0">‹ Назад до списку</button><div id="stats-session-detail"></div>`;
+  const detailEl=document.getElementById('stats-session-detail');
+  detailEl.innerHTML='<div style="color:var(--text3);text-align:center;padding:20px">Завантаження...</div>';
+  await renderStatsBody(detailEl);
+}
+
+async function backToSessionList(){
+  const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
+  renderSessionCards(allSess);
 }
 
 function setStatsMode(mode){
   statsMode=mode;
   document.querySelectorAll('#stats-mode-seg .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===(mode==='all'?0:1)));
-  document.getElementById('stats-sess-select').style.display=mode==='session'?'block':'none';
-  renderStatsBody();
+  if(mode==='session'){
+    sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false}).then(({data})=>renderSessionCards(data));
+  } else {
+    document.getElementById('stats-body').innerHTML='';
+    renderStatsBody();
+  }
 }
 
-async function onStatsSessChange(id){
-  statsSessionId=id;
-  renderStatsBody();
-}
-
-async function renderStatsBody(){
-  const el=document.getElementById('stats-body');
+async function renderStatsBody(targetEl){
+  const el=targetEl||document.getElementById('stats-body');
   if(!el)return;
   el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Завантаження...</div>`;
 
@@ -1927,7 +2353,7 @@ async function renderStatsBody(){
   const {data:biteData}=await query.order('bitten_at',{ascending:false});
 
   if(!biteData?.length){
-    el.innerHTML=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon">🎣</div><div class="empty-title" style="font-size:16px">Покльовок немає</div></div>`;
+    el.innerHTML=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon">🎣</div><div class="empty-title" style="font-size:16px">Клювань немає</div></div>`;
     return;
   }
 
@@ -1937,19 +2363,23 @@ async function renderStatsBody(){
     const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
     const sess=allSess?.find(s=>s.id===statsSessionId);
     if(sess){
-      sessInfoHtml=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
-        <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.5px;margin-bottom:6px">${sess.lake_name} · Сектор ${sess.sector||'—'}</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
+      // 3. bait program emoji
+      const bpEmoji=baitProgramEmoji(sess.bait_program);
+      sessInfoHtml=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2);margin-bottom:4px">${sess.lake_name}</div>
+        <div style="font-size:14px;color:var(--gold);font-weight:500;margin-bottom:10px">Сектор ${sess.sector||'—'}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
           <span style="font-size:11px;color:var(--text2)">📅 ${fmtDate(sess.started_at)}</span>
           <span style="font-size:11px;color:var(--text2)">⏱ ${fmtDur(sess.duration_hours)}</span>
           <span style="font-size:11px;color:var(--text2)">🎣 ${sess.rods} вуд.</span>
           ${sess.rig?`<span style="font-size:11px;color:var(--text2)">🪝 ${sess.rig}</span>`:''}
-          ${sess.bait_program?`<span style="font-size:11px;color:var(--text2)">🌿 ${sess.bait_program}</span>`:''}
+          ${sess.bait_program?`<span style="font-size:11px;color:var(--text2)">${bpEmoji} ${sess.bait_program}</span>`:''}
         </div>
       </div>`;
     }
   }
 
+  window.statsBiteData=biteData;
   const totalW=biteData.reduce((s,b)=>s+(b.weight||0),0);
   const maxB=biteData.reduce((a,b)=>(!a||(b.weight||0)>(a.weight||0))?b:a,null);
   const withWeight=biteData.filter(b=>b.weight);
@@ -1968,49 +2398,77 @@ async function renderStatsBody(){
   const distMap={};biteData.forEach(b=>{if(b.distance_m){const k=b.distance_m+' м.';distMap[k]=(distMap[k]||0)+1}});
   const distSorted=Object.entries(distMap).sort((a,b)=>b[1]-a[1]);
   const maxDist=distSorted[0]?.[1]||1;
-  // bait
-  const baitMap={};biteData.forEach(b=>{if(b.bait_flavor){const k=b.bait_flavor+(b.bait_color?' / '+b.bait_color:'');baitMap[k]=(baitMap[k]||0)+1}});
-  const baitSorted=Object.entries(baitMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const maxBait=baitSorted[0]?.[1]||1;
+  // bait — store flavor+color separately for coloring
+  const baitMap={};
+  biteData.forEach(b=>{
+    if(b.bait_flavor){
+      const k=JSON.stringify({flavor:b.bait_flavor,color:b.bait_color||null});
+      baitMap[k]=(baitMap[k]||0)+1;
+    }
+  });
+  const baitSorted=Object.entries(baitMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,c])=>({...JSON.parse(k),count:c}));
+  const maxBait=baitSorted[0]?.count||1;
   // lake (only in 'all' mode)
   const lakeMap={};biteData.forEach(b=>{const l=b.sessions?.lake_name;if(l)lakeMap[l]=(lakeMap[l]||0)+1});
   const lakeSorted=Object.entries(lakeMap).sort((a,b)=>b[1]-a[1]);
   const maxLake=lakeSorted[0]?.[1]||1;
-  // hourly by clock (for 'all' mode)
-  const hourMap=Array(24).fill(0);biteData.forEach(b=>{hourMap[new Date(b.bitten_at).getHours()]++});
-  const maxHour=Math.max(...hourMap)||1;
-  const hourBars=hourMap.map((v,h)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">
-    <div style="height:${Math.round(v/maxHour*40)}px;min-height:${v?2:0}px;background:var(--gold);border-radius:2px;width:100%;max-width:12px;margin:0 auto"></div>
-    <div style="font-size:8px;color:var(--text3)">${h%3===0?h:''}</div>
-  </div>`).join('');
 
-  // activity from session start in 5h buckets (for 'session' mode)
+  // 7. hourly chart — improved bar chart with count labels
+  const hourMap=Array(24).fill(0);biteData.forEach(b=>{hourMap[new Date(b.bitten_at).getHours()]++});
+  const maxHour=Math.max(...hourMap,1);
+  const BAR_H=52;
+  const hourBars=hourMap.map((v,h)=>{
+    const bh=v?Math.max(4,Math.round(v/maxHour*BAR_H)):0;
+    const lbl=String(h).padStart(2,'0');
+    const hBites=biteData.filter(b=>new Date(b.bitten_at).getHours()===h);
+    return `<div onclick="${v?`showBitesList(window.hourBitesCache[${h}],'${lbl}:00')`:''}" style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;justify-content:flex-end;height:${BAR_H+22}px;cursor:${v?'pointer':'default'}">
+      <div style="font-size:7px;color:${v?'var(--gold2)':'transparent'};margin-bottom:1px;font-weight:600;line-height:1">${v||''}</div>
+      <div style="height:${bh}px;width:100%;max-width:9px;background:var(--gold);border-radius:2px 2px 0 0;margin:0 auto"></div>
+      <div style="font-size:6px;color:var(--text3);margin-top:2px;white-space:nowrap;transform:rotate(-60deg);transform-origin:top center;height:14px;line-height:1">${lbl}</div>
+    </div>`;
+  }).join('');
+  window.hourBitesCache=Array.from({length:24},(_,h)=>biteData.filter(b=>new Date(b.bitten_at).getHours()===h));
+
+  // 5. session activity line chart
   let sessStartChart=null;
   if(statsMode==='session'&&statsSessionId){
     const {data:allSessForChart}=await sb.from('sessions').select('started_at').eq('id',statsSessionId).single();
     sessStartChart=allSessForChart?.started_at?new Date(allSessForChart.started_at):null;
   }
-  const maxSessBuckets=12; // up to 60h
+  const maxSessBuckets=12;
   const sessBuckets=Array(maxSessBuckets).fill(0);
   if(sessStartChart){
     biteData.forEach(b=>{
       const diff=new Date(b.bitten_at)-sessStartChart;
-      if(diff>=0){
-        const bucket=Math.floor(diff/3600000/5);
-        if(bucket<maxSessBuckets)sessBuckets[bucket]++;
-      }
+      if(diff>=0){const bucket=Math.floor(diff/3600000/5);if(bucket<maxSessBuckets)sessBuckets[bucket]++;}
     });
   }
-  const maxSessBucket=Math.max(...sessBuckets)||1;
-  const usedBuckets=sessBuckets.reduce((last,v,i)=>v>0?i:last,-1)+1||maxSessBuckets;
-  const sessTimeBars=sessBuckets.slice(0,Math.min(usedBuckets+1,maxSessBuckets)).map((v,i)=>{
-    const label=`${i*5}`;
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0">
-      ${v>0?`<div style="font-size:8px;color:var(--gold);margin-bottom:1px">${v}</div>`:'<div style="font-size:8px;color:transparent">0</div>'}
-      <div style="height:${Math.round(v/maxSessBucket*50)}px;min-height:${v?3:0}px;background:linear-gradient(to top,var(--gold),var(--gold2));border-radius:2px 2px 0 0;width:100%;max-width:18px;margin:0 auto"></div>
-      <div style="font-size:8px;color:var(--text3);white-space:nowrap">${label}г</div>
-    </div>`;
-  }).join('');
+  const usedBuckets=Math.max(sessBuckets.reduce((last,v,i)=>v>0?i:last,-1)+2,3);
+  const bucketSlice=sessBuckets.slice(0,Math.min(usedBuckets,maxSessBuckets));
+  const maxSessBucket=Math.max(...bucketSlice,1);
+  // build SVG line chart
+  const LW=280,LH=70,LP=10;
+  const pts=bucketSlice.map((v,i)=>{
+    const x=LP+i*(LW-2*LP)/(bucketSlice.length-1||1);
+    const y=LH-LP-Math.round(v/maxSessBucket*(LH-2*LP));
+    return {x,y,v,label:`${i*5}-${i*5+5}`};
+  });
+  const polyline=pts.map(p=>`${p.x},${p.y}`).join(' ');
+  // build bucket->bites mapping for onclick
+  const bucketBites=bucketSlice.map((_,i)=>biteData.filter(b=>{
+    if(!sessStartChart)return false;
+    const diff=new Date(b.bitten_at)-sessStartChart;
+    return diff>=0&&Math.floor(diff/3600000/5)===i;
+  }));
+  const sessLineChart=`<svg width="100%" viewBox="0 0 ${LW} ${LH+24}" style="display:block;overflow:visible">
+    <polyline points="${polyline}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map((p,i)=>`
+      <circle cx="${p.x}" cy="${p.y}" r="${p.v?5:3}" fill="${p.v?'var(--gold)':'var(--gold2)'}" stroke="var(--bg2)" stroke-width="1.5" style="cursor:${p.v?'pointer':'default'}" onclick="${p.v?`showBitesList(bucketBitesCache[${i}],'${p.label} год.')`:''}" />
+      ${p.v?`<text x="${p.x}" y="${p.y-10}" text-anchor="middle" font-size="8" fill="#e8c97a" font-weight="600" style="pointer-events:none">${p.v}</text>`:''}
+      <text x="${p.x}" y="${LH+20}" text-anchor="middle" font-size="7" fill="var(--text3)">${p.label}</text>
+    `).join('')}
+  </svg>`;
+  window.bucketBitesCache=bucketBites;
 
   // distance chart (session mode) - vertical bar chart
   const distChartMap={};
@@ -2018,9 +2476,12 @@ async function renderStatsBody(){
   const distChartSorted=Object.entries(distChartMap).sort((a,b)=>Number(a[0])-Number(b[0]));
   const maxDistChart=distChartSorted.reduce((m,[,c])=>Math.max(m,c),0)||1;
   const totalDistFish=distChartSorted.reduce((s,[,c])=>s+c,0)||1;
-  const distChartBars=distChartSorted.map(([d,c])=>{
+  window.distBitesCache={};
+  const distChartBars=distChartSorted.map(([d,c],di)=>{
+    const distBites=biteData.filter(b=>b.distance_m==d);
+    window.distBitesCache[di]=distBites;
     const pct=Math.round(c/totalDistFish*100);
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0">
+    return `<div onclick="showBitesList(window.distBitesCache[${di}],'${d}м')" style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0;cursor:pointer">
       <div style="font-size:8px;color:var(--gold);font-weight:600">${pct}%</div>
       <div style="height:${Math.round(c/maxDistChart*60)}px;min-height:3px;background:linear-gradient(to top,#63b0ff,#a0d0ff);border-radius:2px 2px 0 0;width:100%;max-width:22px;margin:0 auto"></div>
       <div style="font-size:8px;color:var(--text3)">${d}м</div>
@@ -2031,7 +2492,7 @@ async function renderStatsBody(){
   el.innerHTML=`
     ${sessInfoHtml}
     <div class="bites-summary">
-      <div class="summary-card"><div class="summary-num">${biteData.length}</div><div class="summary-lbl">Покльовок</div></div>
+      <div class="summary-card" onclick="showBitesList(window.statsBiteData,'Клювання')" style="cursor:pointer"><div class="summary-num">${biteData.length}</div><div class="summary-lbl">Клювань</div></div>
       <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
       <div class="summary-card"><div class="summary-num">${avgW?avgW.toFixed(1):'—'}</div><div class="summary-lbl">Сер. вага</div></div>
     </div>
@@ -2041,28 +2502,39 @@ async function renderStatsBody(){
       <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDateTime(maxB.bitten_at)}${statsMode==='all'?' · '+(maxB.sessions?.lake_name||''):''}</div>
     </div>`:''}
     ${statsMode==='session'&&sessStartChart?`
-    <div class="section-label" style="margin-bottom:6px">Активність від початку сесії <span style="font-size:10px;color:var(--text3)">(кроки по 5 год.)</span></div>
-    <div style="display:flex;align-items:flex-end;gap:2px;height:90px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px;overflow-x:auto">${sessTimeBars}</div>
-    `:`
-    <div class="section-label" style="margin-bottom:10px">Активність по годинах</div>
-    <div style="display:flex;align-items:flex-end;gap:1px;height:60px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px">${hourBars}</div>
-    `}
+    <div class="section-label" style="margin-bottom:6px">Активність від початку сесії</div>
+    <div style="background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">${sessLineChart}</div>
+    `:''}
+    ${statsMode==='all'?`
+    <div class="section-label" style="margin-bottom:6px">Активність по годинах</div>
+    <div style="display:flex;align-items:flex-end;gap:1px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:8px 8px 0;margin-bottom:14px">${hourBars}</div>
+    `:''}
+    ${baitSorted.length?`<div class="section-label" style="margin-bottom:10px">Топ насадки</div>
+    <div style="background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      ${baitSorted.map(({flavor,color,count})=>{
+        const colorHex=color?COLOR_HEX[color]||'var(--text2)':null;
+        const label=flavor+(color?` / <span style="color:${colorHex};font-weight:500">${color}</span>`:'');
+        return `<div class="stat-bar-row"><div class="stat-bar-label"><span>${label}</span><span>${count} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(count/maxBait*100)}%"></div></div></div>`;
+      }).join('')}
+    </div>`:''}
     <div class="section-label" style="margin-bottom:10px">Рейтинг риби</div>
     <div style="background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
       ${fishSorted.map(([f,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${f}</span><span>${c} шт</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxFish*100)}%"></div></div></div>`).join('')}
     </div>
     ${statsMode==='session'&&distChartSorted.length?`
-    <div class="section-label" style="margin-bottom:6px">Дистанції <span style="font-size:10px;color:var(--text3)">(% від всіх покльовок)</span></div>
+    <div class="section-label" style="margin-bottom:6px">Дистанції <span style="font-size:10px;color:var(--text3)">(% від всіх клювань)</span></div>
     <div style="display:flex;align-items:flex-end;gap:4px;height:110px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:10px 8px 6px;margin-bottom:14px;overflow-x:auto">${distChartBars}</div>
     `:''}
-    ${baitSorted.length?`<div class="section-label" style="margin-bottom:10px">Топ насадки</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
-      ${baitSorted.map(([b,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${b}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxBait*100)}%"></div></div></div>`).join('')}
-    </div>`:''}
+    ${statsMode==='session'&&sessStartChart?`
+    <div class="section-label" style="margin-bottom:6px">Активність по годинах</div>
+    <div style="display:flex;align-items:flex-end;gap:1px;background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:8px 8px 0;margin-bottom:14px">${hourBars}</div>
+    `:''}
     ${statsMode==='all'&&lakeSorted.length?`<div class="section-label" style="margin-bottom:10px">Рейтинг озер</div>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
       ${lakeSorted.map(([l,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${l}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxLake*100)}%"></div></div></div>`).join('')}
     </div>`:''}
+    ${statsMode==='session'&&statsSessionId?(()=>{const ft=getFeedingTotal(statsSessionId);if(!ft)return '';const ratio=ft>0?(totalW/ft).toFixed(2):'—';return `<div style="background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:18px">🟤</span><div><div style="font-size:11px;color:var(--text3)">Вигодовано корму</div><div style="font-size:16px;font-weight:600;color:var(--gold2)">${parseFloat(ft).toFixed(2)} кг</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,.08);border-radius:6px;padding:6px 10px"><span style="font-size:11px;color:var(--text3)">Коефіцієнт риба/корм</span><span style="font-size:13px;font-weight:600;color:var(--gold)">${ratio}</span></div></div>`})():''}
+    ${statsMode==='all'?(()=>{const allSessIds=sessions.map(s=>s.id);const totalFeed=allSessIds.reduce((sum,id)=>sum+getFeedingTotal(id),0);if(!totalFeed)return '';const ratio=totalFeed>0?(totalW/totalFeed).toFixed(2):'—';return `<div style="background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:18px">🟤</span><div><div style="font-size:11px;color:var(--text3)">Вигодовано корму (всі сесії)</div><div style="font-size:16px;font-weight:600;color:var(--gold2)">${parseFloat(totalFeed).toFixed(2)} кг</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,.08);border-radius:6px;padding:6px 10px"><span style="font-size:11px;color:var(--text3)">Коефіцієнт риба/корм</span><span style="font-size:13px;font-weight:600;color:var(--gold)">${ratio}</span></div></div>`})():''}
     <div style="height:20px"></div>
   `;
 }
@@ -2080,11 +2552,20 @@ function copyBite(b){
     document.querySelectorAll('#nb-fish .chip').forEach(btn=>{
       btn.classList.toggle('active', btn.dataset.fishName===b.fish_type||btn.textContent===b.fish_type);
     });
-    if(b.weight)document.getElementById('nb-weight').value=b.weight;
+    // clear weight — user must re-enter
+    document.getElementById('nb-weight').value='';
     if(b.distance_m)document.getElementById('nb-dist').value=b.distance_m;
-    // rod
-    const rodBtns=document.querySelectorAll('#nb-rod-chips .rod-chip');
-    rodBtns.forEach(btn=>btn.classList.toggle('active',parseInt(btn.textContent)===b.rod_number));
+    // rod — select matching rod chip
+    document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(btn=>{
+      const rn=Number(btn.dataset.rodNum||btn.textContent.trim());
+      btn.classList.toggle('active', rn===b.rod_number);
+    });
+    // spot — select matching spot chip by distance
+    if(b.distance_m){
+      document.querySelectorAll('#nb-spots-chips .chip').forEach(btn=>{
+        btn.classList.toggle('active',Number(btn.dataset.dist)===b.distance_m);
+      });
+    }
     // bait type
     const typeMap={'Поп-ап':'popup','Баланс':'balance','Бойл':'boil'};
     const bType=typeMap[b.bait_type]||'popup';
@@ -2222,9 +2703,9 @@ function closeModal(id){
   if(id==='new-bite-modal'){
     editBiteId=null;
     const mt=document.querySelector('#new-bite-modal .modal-title');
-    if(mt)mt.textContent='Нова покльовка';
+    if(mt)mt.textContent='Нова клювання';
     const nb=document.getElementById('nb-btn');
-    if(nb)nb.textContent='Зберегти покльовку';
+    if(nb)nb.textContent='Зберегти клювання';
   }
 }
 // close modal on overlay click
