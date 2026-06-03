@@ -703,11 +703,12 @@ function coloredBaitStr(b,opts){
     parts.push(`<span onclick="toggleBiteFilter('bait_type',this.innerText)" style="font-size:10px;font-weight:600;cursor:pointer;border-radius:5px;padding:4px 8px;${st}">${b.bait_type}</span>`);
   }
   if(o.flavor&&b.bait_flavor){
-    parts.push(`<span onclick="toggleBiteFilter('bait_flavor',this.innerText)" style="font-size:11px;font-weight:400;cursor:pointer;color:#a89bc4">${b.bait_flavor}</span>`);
+    parts.push(`<span onclick="toggleBiteFilter('bait_flavor',this.innerText)" style="font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(168,155,196,.3);background:rgba(168,155,196,.1);border-radius:5px;padding:2px 7px;color:#a89bc4">${b.bait_flavor}</span>`);
   }
   if(o.color&&b.bait_color&&b.bait_type!=='Бойл'){
     const hex=COLOR_HEX[b.bait_color]||'var(--text2)';
-    parts.push(`<span onclick="toggleBiteFilter('bait_color',this.innerText)" style="font-size:11px;font-weight:500;cursor:pointer;color:${hex}">${b.bait_color}</span>`);
+    const hexRgb=hex.startsWith('#')?`${parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)}`:'128,128,128';
+    parts.push(`<span onclick="toggleBiteFilter('bait_color',this.innerText)" style="font-size:10px;font-weight:500;cursor:pointer;border:1px solid ${hex}55;background:${hex}18;border-radius:5px;padding:2px 7px;color:${hex}">${b.bait_color}</span>`);
   }
   if(o.size&&b.bait_size) parts.push(`<span onclick="toggleBiteFilter('bait_size',this.innerText)" style="font-size:10px;color:var(--text3);cursor:pointer">${b.bait_size}</span>`);
   return parts.join(' ');
@@ -1093,12 +1094,17 @@ function sessionCardHTML(s,active,weightMap={},countMap={}){
   const ends=new Date(s.ends_at);
   const now=new Date();
   const over=now>ends&&active;
-  const badge=active?(over?`<span class="badge badge-warn">Час вийшов</span>`:`<span class="badge badge-active">● Активна</span>`):`<span class="badge badge-done">Завершена</span>`;
-  const click=active?`onclick="goPage('session')"`:
-    `onclick="openArchiveSession('${s.id}')"`
   const kg=(weightMap[s.id]||0).toFixed(1);
   const cnt=countMap[s.id]||0;
-  const archivedKg=!active&&cnt>0?`<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">· ${kg} кг · ${cnt} покл.</span>`:'';
+  const badge=active
+    ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <span class="badge ${over?'badge-warn':'badge-active'}">${over?'Час вийшов':'● Активна'}</span>
+        ${cnt>0?`<span style="font-size:11px;color:var(--text3)">${cnt} кл.</span>`:''}
+       </div>`
+    : `<span class="badge badge-done">Завершена</span>`;
+  const archivedKg=!active&&cnt>0?`<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">· ${kg} кг · ${cnt} кл.</span>`:'';
+  const click=active?`onclick="goPage('session')"`:
+    `onclick="openArchiveSession('${s.id}')"`;
   return `<div class="session-card" ${click}>
     <div class="session-card-bg"><div class="session-card-bg-text">${s.lake_name||''}</div></div>
     <div class="session-card-body">
@@ -1151,7 +1157,25 @@ function renderSession(){
   document.getElementById('session-content').innerHTML=`
     <div id="timer-block" class="timer-block">
       <div style="position:absolute;top:10px;right:12px;display:flex;gap:6px;z-index:2">
-        <button onclick="openFeeding()" style="background:rgba(139,90,43,.18);border:1px solid rgba(139,90,43,.4);border-radius:7px;padding:5px 9px;font-size:14px;cursor:pointer;line-height:1" title="Годування">🟤</button>
+        <button onclick="openFeeding()" style="background:rgba(139,90,43,.18);border:1px solid rgba(139,90,43,.4);border-radius:7px;padding:4px 7px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;width:32px;height:32px" title="Годування"><svg width="20" height="26" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg">
+  <!-- body -->
+  <ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/>
+  <!-- red tail cap -->
+  <ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/>
+  <!-- left wing -->
+  <path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/>
+  <!-- right wing -->
+  <path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/>
+  <!-- wing hinge bar -->
+  <rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/>
+  <!-- red cone nose -->
+  <path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/>
+  <!-- antenna -->
+  <line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/>
+  <circle cx="10" cy="0.5" r="1" fill="#333"/>
+  <!-- body highlight -->
+  <ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/>
+</svg></button>
         <button onclick="openSessSpots()" style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 9px;color:var(--gold);font-size:14px;cursor:pointer;line-height:1">⚙</button>
       </div>
       <div class="timer-lake">${activeSess.lake_name}</div>
@@ -1221,7 +1245,7 @@ function biteCardHTML(b, sessStartedAt, showCopy=true, idx=null){
       <div class="bite-divider"></div>
       <div class="bite-details">
         <div class="bite-row" style="min-height:22px">
-          ${b.rod_number&&sessOpts.rod?`<span class="bite-tag" onclick="showPegTooltip(event,${b.rod_number})" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:``}
+          ${b.rod_number&&sessOpts.rod?`<span class="bite-tag" onclick="showPegTooltip(event,${b.rod_number},${b.distance_m||'null'})" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:``}
         </div>
         <div class="bite-row" style="flex-wrap:wrap;gap:4px;min-height:22px">${(sessOpts.baitType||sessOpts.flavor||sessOpts.color||sessOpts.size)?coloredBaitStr(b,sessOpts):''}</div>
         <div class="bite-time" style="min-height:16px">${sessOpts.datetime?`<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px;color:var(--gold)"><rect x="1" y="2" width="9" height="8" rx="1.5" fill="none" stroke="white" stroke-width="1" opacity=".7"/><line x1="1" y1="4.5" x2="10" y2="4.5" stroke="white" stroke-width=".8" opacity=".7"/><line x1="3.5" y1="1" x2="3.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/><line x1="7.5" y1="1" x2="7.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/></svg>${fmtDateShort(b.bitten_at)}${sessOpts.elapsed?elapsedStr:''}`:''}</div>
@@ -1936,12 +1960,15 @@ function buildSpotsChips(){
 }
 
 // Rod chip tooltip for pegs — called from bite card "Вуд. X" tag
-function showPegTooltip(e,rodNum){
+function showPegTooltip(e,rodNum,distM){
   if(activeSess)loadSessSpots();
-  const spot=sessSpots.find(s=>(s.rods||[]).includes(rodNum)&&s.active!==false);
-  if(!spot||!spot.dist||!sessPegDist)return;
-  const pegs=(spot.dist/sessPegDist).toFixed(1);
-  // remove any existing tip
+  // use the bite's own distance if provided, else fall back to spot distance
+  const dist=distM||(() => {
+    const spot=sessSpots.find(s=>(s.rods||[]).map(Number).includes(Number(rodNum))&&s.active!==false);
+    return spot?.dist;
+  })();
+  if(!dist||!sessPegDist)return;
+  const pegs=(Number(dist)/sessPegDist).toFixed(1);
   document.querySelectorAll('.peg-tooltip').forEach(t=>t.remove());
   const tip=document.createElement('div');
   tip.className='peg-tooltip';
