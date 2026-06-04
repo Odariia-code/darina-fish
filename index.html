@@ -772,6 +772,9 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
     </div>
     <div class="modal-footer">
       <button class="cancel-btn" onclick="closeModal('coop-entry-modal')">Закрити</button>
+      <button onclick="openCoopArchive()" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:4px;background:rgba(99,176,255,.08);border:1px solid rgba(99,176,255,.2);border-radius:var(--r2);padding:10px;color:#63b0ff;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">
+        📋 Всі спільні сесії
+      </button>
     </div>
   </div>
 </div>
@@ -954,7 +957,27 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
   </div>
 </div>
 
-<!-- ===== COOP STATS SCREEN ===== -->
+<!-- ===== COOP ARCHIVE SCREEN ===== -->
+<div id="coop-archive-screen" style="display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column">
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+    <button onclick="closeCoopArchive()" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:Inter,sans-serif;padding:4px">← Назад</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold2)">🤝 Спільні сесії</div>
+    <div style="width:48px"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 40px" id="coop-archive-list">
+    <div class="empty-state"><div class="empty-icon">🤝</div><div class="empty-title">Завантаження...</div></div>
+  </div>
+</div>
+
+<!-- ===== COOP ARCHIVE SESSION VIEW ===== -->
+<div id="coop-archive-view-screen" style="display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column">
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+    <button onclick="closeCoopArchiveView()" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:Inter,sans-serif;padding:4px">← Назад</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold2)" id="coop-arch-title">Спільна сесія</div>
+    <div style="width:48px"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 40px" id="coop-archive-view-content"></div>
+</div>
 <div id="coop-stats-screen" style="display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column">
   <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
     <button onclick="closeCoopStats()" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:Inter,sans-serif;padding:4px">← Назад</button>
@@ -1435,18 +1458,23 @@ function addFish(){
 async function loadSessions(){
   const {data}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
   sessions=data||[];
-  activeSess=sessions.find(s=>s.is_active)||null;
+  // activeSess — тільки власна сесія, не гостьова
+  activeSess=sessions.find(s=>s.is_active&&s.user_id===user.id)||null;
   if(activeSess){
     document.getElementById('nav-session').style.display='';
     await loadBites(activeSess.id);
+    await loadFeedingsFromDB(activeSess.id);
     subscribeOwnerRealtime();
+    subscribeFeedingRealtime();
   } else {
     document.getElementById('nav-session').style.display='none';
     bites=[];
     if(ownerRealtimeSub){sb.removeChannel(ownerRealtimeSub);ownerRealtimeSub=null;}
   }
 }
+
 async function loadBites(sid){
+  // завантажуємо ВСІ клювання сесії (власника + співрибаків)
   const {data}=await sb.from('bites').select('*').eq('session_id',sid).is('coop_session_id',null).order('bitten_at',{ascending:true});
   bites=data||[];
 }
@@ -1478,6 +1506,7 @@ function subscribeOwnerRealtime(){
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessions',
       filter:`id=eq.${activeSess.id}`},payload=>{
       const p=payload.new;
+      console.log('owner realtime SESSION UPDATE received, keys:', Object.keys(p||{}));
       // spots_data
       if(p?.spots_data){
         const d=_parseSessData(p.spots_data);
@@ -1485,11 +1514,6 @@ function subscribeOwnerRealtime(){
         localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify(p.spots_data));
         if(document.getElementById('sess-spots-modal')?.classList.contains('open'))renderSessSpots();
         if(!guestSess&&document.getElementById('bites-list'))renderBitesList();
-      }
-      // feedings_data
-      if(p?.feedings_data){
-        localStorage.setItem('feedings_'+activeSess.id,JSON.stringify(p.feedings_data));
-        if(document.getElementById('feeding-modal')?.classList.contains('open'))renderFeedingList();
       }
     })
     .subscribe();
@@ -1508,7 +1532,10 @@ function goPage(p){
   else if(p==='session'&&(activeSess||guestSess)){fab.classList.remove('hidden');lbl.textContent='Клювання'}
   else{fab.classList.add('hidden')}
   if(p==='session'){
-    if(guestSess&&!activeSess)renderGuestSession();
+    // viewer з власною активною — показуємо свою
+    const showOwnSession=activeSess&&activeSess.user_id===user.id;
+    if(guestSess&&guestRole!=='viewer')renderGuestSession();
+    else if(guestSess&&guestRole==='viewer'&&!showOwnSession)renderGuestSession();
     else renderSession();
   }
   if(p==='stats'){statsMode='all';renderStats();}
@@ -1524,26 +1551,71 @@ function onFab(){
 // HOME
 async function renderHome(){
   const el=document.getElementById('home-content');
-  if(!sessions.length){
+  if(!sessions.length&&!guestSess){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Ще немає сесій</div><div class="empty-sub">Натисни "+ Нова сесія"<br>щоб розпочати першу рибалку</div></div>`;
     return;
   }
-  // load weight totals for all sessions — exclude coop bites (they have coop_session_id set)
-  const {data:allBites}=await sb.from('bites').select('session_id,weight').eq('user_id',user.id).is('coop_session_id',null);
+  // для власних сесій — тільки свої bites; для гостьових — всі bites сесії
+  const ownSessIds=sessions.filter(s=>s.user_id===user.id).map(s=>s.id);
+  const guestSessIds=sessions.filter(s=>s.user_id!==user.id).map(s=>s.id);
+
   const weightMap={};
-  (allBites||[]).forEach(b=>{weightMap[b.session_id]=(weightMap[b.session_id]||0)+(b.weight||0)});
   const countMap={};
-  (allBites||[]).forEach(b=>{countMap[b.session_id]=(countMap[b.session_id]||0)+1});
+
+  // власні клювання
+  if(ownSessIds.length){
+    const {data:ownBites}=await sb.from('bites').select('session_id,weight')
+      .in('session_id',ownSessIds).eq('user_id',user.id).is('coop_session_id',null);
+    (ownBites||[]).forEach(b=>{
+      weightMap[b.session_id]=(weightMap[b.session_id]||0)+(b.weight||0);
+      countMap[b.session_id]=(countMap[b.session_id]||0)+1;
+    });
+  }
+
+  // всі клювання гостьових сесій (власника + інших)
+  if(guestSessIds.length){
+    const {data:gBites}=await sb.from('bites').select('session_id,weight')
+      .in('session_id',guestSessIds).is('coop_session_id',null);
+    (gBites||[]).forEach(b=>{
+      weightMap[b.session_id]=(weightMap[b.session_id]||0)+(b.weight||0);
+      countMap[b.session_id]=(countMap[b.session_id]||0)+1;
+    });
+  }
 
   let html='';
-  if(activeSess){
+  const ownActive=sessions.find(s=>s.is_active&&s.user_id===user.id)||null;
+  const viewerActive=sessions.filter(s=>s._guestRole==='viewer'&&s.is_active);
+  const editorActive=!ownActive?sessions.find(s=>s._guestRole==='editor'&&s.is_active):null;
+  const archived=sessions.filter(s=>!s.is_active);
+
+  if(ownActive){
     html+=`<div class="section-label" style="margin-bottom:10px">Активна сесія <span>в процесі</span></div>`;
-    html+=sessionCardHTML(activeSess,true,weightMap,countMap);
-    const archived=sessions.filter(s=>!s.is_active);
-    if(archived.length){html+=`<div class="section-label" style="margin:16px 0 10px">Архів <span>${archived.length} сесій</span></div>`;archived.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap)})}
-  } else {
-    html+=`<div class="section-label" style="margin-bottom:10px">Всі сесії <span>${sessions.length}</span></div>`;
-    sessions.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap)});
+    html+=sessionCardHTML(ownActive,true,weightMap,countMap);
+    if(viewerActive.length){
+      html+=`<div class="section-label" style="margin:16px 0 10px">👁 Спостерігаю <span>${viewerActive.length}</span></div>`;
+      viewerActive.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap);});
+    }
+  } else if(editorActive){
+    html+=`<div class="section-label" style="margin-bottom:10px">Активна сесія <span style="font-size:10px;color:var(--green);font-weight:400">(співрибак)</span></div>`;
+    html+=sessionCardHTML(editorActive,true,weightMap,countMap);
+    const vOther=viewerActive.filter(s=>s.id!==editorActive.id);
+    if(vOther.length){
+      html+=`<div class="section-label" style="margin:16px 0 10px">👁 Спостерігаю <span>${vOther.length}</span></div>`;
+      vOther.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap);});
+    }
+  } else if(viewerActive.length){
+    html+=`<div class="section-label" style="margin:0 0 10px">👁 Спостерігаю <span>${viewerActive.length}</span></div>`;
+    viewerActive.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap);});
+  }
+
+  if(archived.length){
+    html+=`<div class="section-label" style="margin:${(ownActive||editorActive||viewerActive.length)?'16':'0'}px 0 10px">Архів <span>${archived.length} сесій</span></div>`;
+    archived.forEach(s=>{html+=sessionCardHTML(s,false,weightMap,countMap);});
+  }
+
+  if(!html){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Ще немає сесій</div><div class="empty-sub">Натисни &quot;+ Нова сесія&quot;<br>щоб розпочати першу рибалку</div></div>`;
+    return;
   }
   el.innerHTML=html;
 }
@@ -1551,18 +1623,31 @@ async function renderHome(){
 function sessionCardHTML(s,active,weightMap={},countMap={}){
   const started=new Date(s.started_at);
   const ends=new Date(s.ends_at);
+  const isGuestSess=s.user_id!==user.id;
+  const sGuestRole=s._guestRole||(guestSess?.id===s.id?guestRole:null);
+  const isViewer=isGuestSess&&sGuestRole==='viewer';
+  const isEditor=isGuestSess&&sGuestRole==='editor';
   const now=new Date();
-  const over=now>ends&&active;
+  // Fix 1: статус береться з реального s.is_active, а не параметра active
+  const isReallyActive=s.is_active;
+  const over=now>ends&&isReallyActive;
   const kg=(weightMap[s.id]||0).toFixed(1);
   const cnt=countMap[s.id]||0;
-  const badge=active
+  const badge=isReallyActive
     ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
         <span class="badge ${over?'badge-warn':'badge-active'}">${over?'Час вийшов':'● Активна'}</span>
+        ${isViewer?`<span style="font-size:9px;color:#63b0ff;background:rgba(99,176,255,.1);border:1px solid rgba(99,176,255,.3);border-radius:4px;padding:1px 5px">👁 спостерігач</span>`:''}
+        ${isEditor?`<span style="font-size:9px;color:var(--green);background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.3);border-radius:4px;padding:1px 5px">👥 співрибак</span>`:''}
         ${cnt>0?`<span style="font-size:11px;color:var(--text3)">${cnt} кл.</span>`:''}
        </div>`
-    : `<span class="badge badge-done">Завершена</span>`;
-  const archivedKg=!active&&cnt>0?`<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">· ${kg} кг · ${cnt} кл.</span>`:'';
-  const click=active?`onclick="goPage('session')"`:
+    : `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <span class="badge badge-done">Завершена</span>
+        ${isViewer?`<span style="font-size:9px;color:#63b0ff;background:rgba(99,176,255,.1);border:1px solid rgba(99,176,255,.3);border-radius:4px;padding:1px 5px">👁 спостерігач</span>`:''}
+        ${isEditor?`<span style="font-size:9px;color:var(--green);background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.3);border-radius:4px;padding:1px 5px">👥 співрибак</span>`:''}
+       </div>`;
+  const archivedKg=!isReallyActive&&cnt>0?`<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">· ${kg} кг · ${cnt} кл.</span>`:'';
+  // viewer сесія: клік відкриває архів (read-only)
+  const click=isReallyActive&&!isViewer?`onclick="goPage('session')"`:
     `onclick="openArchiveSession('${s.id}')"`;
   return `<div class="session-card" ${click}>
     <div class="session-card-bg"><div class="session-card-bg-text">${s.lake_name||''}</div></div>
@@ -1882,8 +1967,11 @@ async function endSession(){
   if(!confirm('Завершити поточну сесію?'))return;
   await sb.from('sessions').update({is_active:false}).eq('id',activeSess.id);
   if(timerInt)clearInterval(timerInt);
+  activeSess=null;bites=[];
+  if(ownerRealtimeSub){sb.removeChannel(ownerRealtimeSub);ownerRealtimeSub=null;}
   toast('✓ Сесію завершено');
   await loadSessions();
+  await loadGuestState();
   renderHome();
   goPage('home');
 }
@@ -1891,6 +1979,7 @@ async function endSession(){
 async function openArchiveSession(sessId){
   const sess=sessions.find(s=>s.id===sessId);
   if(!sess)return;
+  const isViewerSess=sess._guestRole==='viewer'||(guestSess?.id===sessId&&guestRole==='viewer');
   const {data:sessB}=await sb.from('bites').select('*').eq('session_id',sessId).is('coop_session_id',null).order('bitten_at',{ascending:false});
   const sb_bites=sessB||[];
   const totalW=sb_bites.reduce((s,b)=>s+(b.weight||0),0);
@@ -1916,7 +2005,8 @@ async function openArchiveSession(sessId){
   if(!sb_bites.length){
     bitesHtml=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Клювань не було</div>`;
   } else {
-    sb_bites.forEach(b=>{bitesHtml+=biteCardHTML(b, sess.started_at)});
+    // Fix 1: для спостерігача — без кнопки копіювати
+    sb_bites.forEach(b=>{bitesHtml+=biteCardHTML(b,sess.started_at,!isViewerSess);});
   }
 
   document.getElementById('archive-modal-body').innerHTML=`
@@ -2273,15 +2363,66 @@ function renderSessSpots(){
           <div style="position:absolute;left:${sessOpts[key]?'22':'2'}px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s"></div>
         </div>
       </div>`).join('')}
-  </div>
-  <div style="height:16px"></div>
+  </div>`;
+
+  // Секція гостей — тільки для власника активної сесії
+  const currentSessId=activeSess?.id;
+  if(currentSessId&&activeSess?.user_id===user.id){
+    html+=`<div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px" id="sess-guests-section">
+      <div class="settings-title" style="margin-bottom:8px">👥 Учасники сесії</div>
+      <div id="sess-guests-list" style="font-size:13px;color:var(--text3)">Завантаження...</div>
+    </div>`;
+  }
+
+  html+=`<div style="height:16px"></div>
   <button class="btn-gold" onclick="closeSessSpots()">Готово</button>
   <div style="height:20px"></div>`;
 
   body.innerHTML=html;
+
+  // завантажуємо гостей асинхронно
+  if(currentSessId&&activeSess?.user_id===user.id){
+    loadSessGuests(currentSessId);
+  }
 }
 
 let dragRodNum=null,dragRodFrom=null;
+
+async function loadSessGuests(sessId){
+  const el=document.getElementById('sess-guests-list');
+  if(!el)return;
+  try{
+    const {data:guests,error}=await sb.from('session_guests')
+      .select('id,user_id,role')
+      .eq('session_id',sessId);
+    if(error){console.log('loadSessGuests err:',error.message);el.innerHTML=`<div style="color:var(--text3);font-size:12px">Помилка завантаження</div>`;return;}
+    if(!guests?.length){
+      el.innerHTML=`<div style="color:var(--text3);font-size:12px;padding:4px 0">Ніхто не приєднався</div>`;
+      return;
+    }
+    // завантажуємо нікнейми окремо
+    const userIds=guests.map(g=>g.user_id);
+    const {data:profiles,error:pErr}=await sb.from('profiles').select('id,nickname').in('id',userIds);
+    if(pErr)console.log('profiles err:',pErr.message);
+    console.log('profiles found:',profiles?.length,'for userIds:',userIds);
+    const nickMap={};
+    (profiles||[]).forEach(p=>{if(p.nickname)nickMap[p.id]=p.nickname;});
+
+    el.innerHTML=guests.map(g=>{
+      const nick=nickMap[g.user_id]||`Без нікнейму`;
+      const isEditor=g.role==='editor';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(48,54,61,.4)">
+        <div style="font-size:13px;color:var(--text)">${nick}</div>
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;${isEditor
+          ?'background:rgba(46,160,67,.12);color:var(--green);border:1px solid rgba(46,160,67,.3)'
+          :'background:rgba(99,176,255,.1);color:#63b0ff;border:1px solid rgba(99,176,255,.3)'}">${isEditor?'👥 співрибак':'👁 спостерігач'}</span>
+      </div>`;
+    }).join('');
+  }catch(e){
+    console.log('loadSessGuests ex:',e);
+    if(el)el.innerHTML=`<div style="color:var(--text3);font-size:12px">Не вдалось завантажити</div>`;
+  }
+}
 let touchDragEl=null,touchDragClone=null;
 
 function dragRodStart(e,rodNum,fromSi){
@@ -2696,41 +2837,58 @@ setTimeout(()=>{
 },500);
 
 // ===== FEEDING =====
-// ── FEEDINGS — зберігаються в sessions.feedings_data ──
+// оновлює список годувань у відкритій модалці і бейдж в таймері
+// ── FEEDINGS — окрема таблиця з realtime ──
+let feedingsCache=[];  // поточні годування активної/гостьової сесії
+let feedingRealtimeSub=null;
+
 function _getFeedSessId(){
-  if(guestSess&&!activeSess)return guestSess.id;
+  if(guestSess)return guestSess.id;
   return activeSess?.id||null;
 }
 
-function loadFeedings(){
-  const sid=_getFeedSessId();
-  if(!sid)return[];
-  try{return JSON.parse(localStorage.getItem('feedings_'+sid)||'[]');}catch{return[];}
-}
-
-function saveFeedings(arr){
-  const sid=_getFeedSessId();
-  if(!sid)return;
-  localStorage.setItem('feedings_'+sid,JSON.stringify(arr));
-  // зберігаємо в Supabase асинхронно
-  sb.from('sessions').update({feedings_data:arr}).eq('id',sid).then(({error})=>{
-    if(error)console.log('saveFeedings err:',error.message);
-  });
-}
-
 async function loadFeedingsFromDB(sid){
-  try{
-    const {data}=await sb.from('sessions').select('feedings_data').eq('id',sid).maybeSingle();
-    if(data?.feedings_data){
-      localStorage.setItem('feedings_'+sid,JSON.stringify(data.feedings_data));
-      return data.feedings_data;
-    }
-  }catch(e){}
-  return JSON.parse(localStorage.getItem('feedings_'+sid)||'[]');
+  if(!sid)return;
+  const {data,error}=await sb.from('feedings')
+    .select('*').eq('session_id',sid)
+    .order('fed_at',{ascending:true});
+  if(!error)feedingsCache=data||[];
 }
 
 function getFeedingTotal(sessId){
-  try{return JSON.parse(localStorage.getItem('feedings_'+sessId)||'[]').reduce((s,f)=>s+(parseFloat(f.weight)||0),0);}catch{return 0;}
+  const sid=_getFeedSessId();
+  if(sid===sessId)return feedingsCache.reduce((s,f)=>s+(parseFloat(f.weight)||0),0);
+  return 0; // для архівних — показуємо 0 (старі дані в localStorage не використовуємо)
+}
+
+async function getFeedingTotalAsync(sessId){
+  try{
+    const {data}=await sb.from('feedings').select('weight').eq('session_id',sessId);
+    return (data||[]).reduce((s,f)=>s+(parseFloat(f.weight)||0),0);
+  }catch{return 0;}
+}
+
+function subscribeFeedingRealtime(){
+  if(feedingRealtimeSub){sb.removeChannel(feedingRealtimeSub);feedingRealtimeSub=null;}
+  const sid=_getFeedSessId();
+  if(!sid)return;
+  feedingRealtimeSub=sb.channel('feedings-'+sid)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'feedings',filter:`session_id=eq.${sid}`},payload=>{
+      if(!feedingsCache.find(f=>f.id===payload.new.id)){
+        feedingsCache.push(payload.new);
+        feedingsCache.sort((a,b)=>new Date(a.fed_at)-new Date(b.fed_at));
+      }
+      refreshFeedingUI();
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'feedings',filter:`session_id=eq.${sid}`},payload=>{
+      feedingsCache=feedingsCache.filter(f=>f.id!==payload.old.id);
+      refreshFeedingUI();
+    })
+    .subscribe();
+}
+
+function refreshFeedingUI(){
+  if(document.getElementById('feeding-modal')?.classList.contains('open'))renderFeedingList();
 }
 
 async function openFeeding(){
@@ -2742,8 +2900,9 @@ async function openFeeding(){
   renderFeedingList();
   openModal('feeding-modal');
 }
+
 function renderFeedingList(){
-  const feedings=loadFeedings();
+  const feedings=feedingsCache;
   const total=feedings.reduce((s,f)=>s+(parseFloat(f.weight)||0),0);
   const totalBlock=document.getElementById('feeding-total-block');
   const totalEl=document.getElementById('feeding-total');
@@ -2751,40 +2910,49 @@ function renderFeedingList(){
   else{totalBlock.style.display='none';}
   const list=document.getElementById('feeding-list');
   if(!feedings.length){list.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:10px 0">Годувань ще немає</div>';return;}
-  list.innerHTML=`<div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Годувань: ${feedings.length}</div>`+feedings.map((f,i)=>`
+  list.innerHTML=`<div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Годувань: ${feedings.length}</div>`+
+  [...feedings].reverse().map((f)=>`
     <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.25);border-radius:var(--r);padding:10px 12px;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:10px">
         <svg width="20" height="26" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/><path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/><path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/><line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/><circle cx="10" cy="0.5" r="1" fill="#333"/><ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/></svg>
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--gold2)">${parseFloat(f.weight).toFixed(2)} кг</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:1px">${fmtDateTime(f.time)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">${fmtDateTime(f.fed_at)}</div>
           ${f.notes?`<div style="font-size:11px;color:var(--text2);font-style:italic;margin-top:2px">${f.notes}</div>`:''}
         </div>
       </div>
-      <button onclick="deleteFeeding(${i})" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+      <button onclick="deleteFeeding('${f.id}')" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>
     </div>
   `).join('');
 }
-function saveFeeding(){
+
+async function saveFeeding(){
   const raw=(document.getElementById('feed-weight').value||'').replace(',','.');
   const w=parseFloat(raw)||null;
   if(!w){toast('⚠ Вкажіть вагу');return;}
+  const sid=_getFeedSessId();
+  if(!sid){toast('Немає активної сесії');return;}
   const t=document.getElementById('feed-time').value;
   const n=document.getElementById('feed-notes').value.trim();
-  const feedings=loadFeedings();
-  feedings.push({weight:w,time:t?new Date(t).toISOString():new Date().toISOString(),notes:n});
-  saveFeedings(feedings);
+  const {error}=await sb.from('feedings').insert({
+    session_id:sid,
+    user_id:user.id,
+    weight:w,
+    fed_at:t?new Date(t).toISOString():new Date().toISOString(),
+    notes:n||null
+  });
+  if(error){toast('Помилка: '+error.message);return;}
   document.getElementById('feed-weight').value='';
   document.getElementById('feed-notes').value='';
   document.getElementById('feed-time').value=toLocalDT();
-  renderFeedingList();
   toast('✓ Годування додано');
+  // realtime підхопить і оновить список
 }
-function deleteFeeding(i){
-  const feedings=loadFeedings();
-  feedings.splice(i,1);
-  saveFeedings(feedings);
+
+async function deleteFeeding(id){
+  feedingsCache=feedingsCache.filter(f=>f.id!==id);
   renderFeedingList();
+  await sb.from('feedings').delete().eq('id',id);
 }
 
 // ===== BITES LIST OVERLAY (for stats taps) =====
@@ -2844,11 +3012,16 @@ async function renderStats(){
       <button class="seg-btn" onclick="setStatsMode('session')">По сесії</button>
     </div><div id="stats-body"><div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">Завантаження...</div></div>`;
   const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
-  if(!allSess?.length){
+  // додаємо гостьові сесії яких немає в списку
+  const allSessWithGuest=[...(allSess||[])];
+  sessions.filter(s=>s.user_id!==user.id).forEach(gs=>{
+    if(!allSessWithGuest.find(s=>s.id===gs.id))allSessWithGuest.push(gs);
+  });
+  if(!allSessWithGuest.length){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Ще немає даних</div><div class="empty-sub">Статистика з'явиться<br>після першого клювання</div></div>`;
     return;
   }
-  if(!statsSessionId)statsSessionId=allSess[0].id;
+  if(!statsSessionId)statsSessionId=allSessWithGuest[0].id;
   await renderStatsBody();
 }
 
@@ -2865,13 +3038,26 @@ function fmtDateRange(start,end){
 function renderSessionCards(allSess){
   const el=document.getElementById('stats-body');
   if(!allSess?.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">Немає сесій</div>';return;}
-  el.innerHTML=allSess.map(s=>{
+  // сортуємо — активна сесія першою, потім найновіші
+  const sorted=[...allSess].sort((a,b)=>{
+    if(a.is_active&&!b.is_active)return -1;
+    if(!a.is_active&&b.is_active)return 1;
+    return new Date(b.started_at)-new Date(a.started_at);
+  });
+  el.innerHTML=sorted.map(s=>{
     const dateRange=fmtDateRange(s.started_at,s.ends_at);
     const dur=s.duration_hours?fmtDur(s.duration_hours):'—';
-    return `<div onclick="openSessionStats('${s.id}')" style="background:rgba(22,27,34,.7);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;backdrop-filter:blur(10px)">
+    const isGuest=s.user_id!==user.id;
+    const role=s._guestRole||(guestSess?.id===s.id?guestRole:null);
+    const guestBadge=isGuest&&role==='viewer'
+      ?`<span style="font-size:9px;color:#63b0ff;background:rgba(99,176,255,.1);border:1px solid rgba(99,176,255,.3);border-radius:4px;padding:1px 5px;margin-left:6px">👁 спостерігач</span>`
+      :isGuest&&role==='editor'
+      ?`<span style="font-size:9px;color:var(--green);background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.3);border-radius:4px;padding:1px 5px;margin-left:6px">👥 співрибак</span>`:'';
+    return `<div onclick="openSessionStats('${s.id}')" style="background:${s.is_active?'rgba(46,160,67,.08)':'rgba(22,27,34,.7)'};border:1px solid ${s.is_active?'rgba(46,160,67,.3)':'var(--border)'};border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;backdrop-filter:blur(10px)">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)">${s.lake_name||'Водойма'}</div>
+          ${s.is_active?'<div style="font-size:9px;color:var(--green);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle"></span>Активна</div>':''}
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${s.lake_name||'Водойма'}${guestBadge}</div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px">Сектор ${s.sector||'—'} · ${dateRange} · ${dur}</div>
         </div>
         <span style="font-size:18px;color:var(--text3)">›</span>
@@ -2890,7 +3076,11 @@ async function openSessionStats(sessId){
 }
 
 async function backToSessionList(){
-  const {data:allSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
+  const {data:ownSess}=await sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false});
+  const allSess=[...(ownSess||[])];
+  sessions.filter(s=>s.user_id!==user.id).forEach(gs=>{
+    if(!allSess.find(s=>s.id===gs.id))allSess.push(gs);
+  });
   renderSessionCards(allSess);
 }
 
@@ -2898,7 +3088,13 @@ function setStatsMode(mode){
   statsMode=mode;
   document.querySelectorAll('#stats-mode-seg .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===(mode==='all'?0:1)));
   if(mode==='session'){
-    sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false}).then(({data})=>renderSessionCards(data));
+    sb.from('sessions').select('*').eq('user_id',user.id).order('started_at',{ascending:false}).then(({data})=>{
+      const allSess=[...(data||[])];
+      sessions.filter(s=>s.user_id!==user.id).forEach(gs=>{
+        if(!allSess.find(s=>s.id===gs.id))allSess.push(gs);
+      });
+      renderSessionCards(allSess);
+    });
   } else {
     document.getElementById('stats-body').innerHTML='';
     renderStatsBody();
@@ -2910,9 +3106,39 @@ async function renderStatsBody(targetEl){
   if(!el)return;
   el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Завантаження...</div>`;
 
-  let query=sb.from('bites').select('*,sessions(lake_name,sector)').eq('user_id',user.id).is('coop_session_id',null);
+  // завантажуємо суму годувань заздалегідь
+  const feedTotal=statsMode==='session'&&statsSessionId
+    ? await getFeedingTotalAsync(statsSessionId)
+    : await (async()=>{
+        // тільки власні сесії + editor сесії (не viewer)
+        const validIds=[
+          ...sessions.filter(s=>s.user_id===user.id).map(s=>s.id),
+          ...sessions.filter(s=>s.user_id!==user.id&&s._guestRole==='editor').map(s=>s.id)
+        ];
+        if(!validIds.length)return 0;
+        const {data}=await sb.from('feedings').select('weight').in('session_id',validIds);
+        return (data||[]).reduce((s,f)=>s+(parseFloat(f.weight)||0),0);
+      })();
+
+  // для статистики по сесії — всі клювання сесії (власника + співрибаків)
+  // для загальної — свої клювання + клювання в сесіях де я СПІВРИБАК (не спостерігач)
+  let query;
   if(statsMode==='session'&&statsSessionId){
-    query=query.eq('session_id',statsSessionId);
+    query=sb.from('bites').select('*,sessions(lake_name,sector)')
+      .eq('session_id',statsSessionId)
+      .is('coop_session_id',null);
+  } else {
+    // тільки editor сесії (не viewer) для загальної статистики
+    const editorSessIds=sessions.filter(s=>s.user_id!==user.id&&s._guestRole==='editor').map(s=>s.id);
+    if(editorSessIds.length){
+      query=sb.from('bites').select('*,sessions(lake_name,sector)')
+        .or(`user_id.eq.${user.id},session_id.in.(${editorSessIds.join(',')})`)
+        .is('coop_session_id',null);
+    } else {
+      query=sb.from('bites').select('*,sessions(lake_name,sector)')
+        .eq('user_id',user.id)
+        .is('coop_session_id',null);
+    }
   }
   const {data:biteData}=await query.order('bitten_at',{ascending:false});
 
@@ -3097,8 +3323,7 @@ async function renderStatsBody(targetEl){
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
       ${lakeSorted.map(([l,c])=>`<div class="stat-bar-row"><div class="stat-bar-label"><span>${l}</span><span>${c} покл.</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:${Math.round(c/maxLake*100)}%"></div></div></div>`).join('')}
     </div>`:''}
-    ${statsMode==='session'&&statsSessionId?(()=>{const ft=getFeedingTotal(statsSessionId);if(!ft)return '';const ratio=ft>0?(totalW/ft).toFixed(2):'—';return `<div style="background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><svg width="18" height="23" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/><path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/><path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/><line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/><circle cx="10" cy="0.5" r="1" fill="#333"/><ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/></svg><div><div style="font-size:11px;color:var(--text3)">Вигодовано корму</div><div style="font-size:16px;font-weight:600;color:var(--gold2)">${parseFloat(ft).toFixed(2)} кг</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,.08);border-radius:6px;padding:6px 10px"><span style="font-size:11px;color:var(--text3)">Коефіцієнт риба/корм</span><span style="font-size:13px;font-weight:600;color:var(--gold)">${ratio}</span></div></div>`})():''}
-    ${statsMode==='all'?(()=>{const allSessIds=sessions.map(s=>s.id);const totalFeed=allSessIds.reduce((sum,id)=>sum+getFeedingTotal(id),0);if(!totalFeed)return '';const ratio=totalFeed>0?(totalW/totalFeed).toFixed(2):'—';return `<div style="background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><svg width="18" height="23" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/><path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/><path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/><line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/><circle cx="10" cy="0.5" r="1" fill="#333"/><ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/></svg><div><div style="font-size:11px;color:var(--text3)">Вигодовано корму (всі сесії)</div><div style="font-size:16px;font-weight:600;color:var(--gold2)">${parseFloat(totalFeed).toFixed(2)} кг</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,.08);border-radius:6px;padding:6px 10px"><span style="font-size:11px;color:var(--text3)">Коефіцієнт риба/корм</span><span style="font-size:13px;font-weight:600;color:var(--gold)">${ratio}</span></div></div>`})():''}
+    ${(()=>{const ft=feedTotal;if(!ft)return '';const ratio=ft>0?(totalW/ft).toFixed(2):'—';return `<div style="background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><svg width="18" height="23" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/><path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/><path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/><line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/><circle cx="10" cy="0.5" r="1" fill="#333"/><ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/></svg><div><div style="font-size:11px;color:var(--text3)">${statsMode==='session'?'Вигодовано корму':'Вигодовано корму (всі сесії)'}</div><div style="font-size:16px;font-weight:600;color:var(--gold2)">${parseFloat(ft).toFixed(2)} кг</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,.08);border-radius:6px;padding:6px 10px"><span style="font-size:11px;color:var(--text3)">Коефіцієнт риба/корм</span><span style="font-size:13px;font-weight:600;color:var(--gold)">${ratio}</span></div></div>`;})()}
     <div style="height:20px"></div>
   `;
 }
@@ -3388,7 +3613,8 @@ async function saveCoopSession(){
 
 // --- open JOIN flow ---
 function openCoopJoin(){
-  if(activeSess){toast('Спочатку завершіть активну особисту сесію');return}
+  const hasOwnActive=activeSess&&activeSess.user_id===user.id;
+  if(hasOwnActive){toast('Спочатку завершіть активну особисту сесію');return}
   if(coopSess){toast('Ви вже в спільній сесії');return}
   closeModal('coop-entry-modal');
   document.getElementById('cj-code').value='';
@@ -4617,11 +4843,14 @@ async function saveCoopAddTeam(sheetOrOverlay){
 let orgMembers=[]; // all members with profiles
 
 async function openCoopOrgSettings(){
-  // load all members + their nicknames
-  const {data:members}=await sb.from('co_members')
-    .select('*,profiles(nickname)')
-    .eq('session_id',coopSess.id);
-  orgMembers=members||[];
+  const {data:members}=await sb.from('co_members').select('*').eq('session_id',coopSess.id);
+  const mIds=[...new Set((members||[]).map(m=>m.user_id))];
+  let nickMap={};
+  if(mIds.length){
+    const {data:profs}=await sb.from('profiles').select('id,nickname').in('id',mIds);
+    (profs||[]).forEach(p=>{nickMap[p.id]=p.nickname;});
+  }
+  orgMembers=(members||[]).map(m=>({...m,_nick:nickMap[m.user_id]||null}));
   await refreshCoopTeams();
   renderCoopOrgSettingsUI();
 }
@@ -4691,7 +4920,7 @@ function renderCoopOrgSettingsUI(){
 }
 
 function orgMemberChip(m){
-  const nick=m.profiles?.nickname||m.user_id.slice(0,8);
+  const nick=m._nick||m.user_id.slice(0,8);
   const isMe=m.user_id===user.id;
   const cap=m.is_captain?'⭐ ':'';
   return `<div draggable="true"
@@ -4987,9 +5216,16 @@ async function openShareSession(){
 
   // завантажуємо список гостей
   const {data:guests}=await sb.from('session_guests')
-    .select('*,profiles(nickname)')
+    .select('*')
     .eq('session_id',sess.id);
   const guestList=guests||[];
+  // завантажуємо нікнейми
+  const guestUids=guestList.map(g=>g.user_id);
+  let gNickMap={};
+  if(guestUids.length){
+    const {data:gProfs}=await sb.from('profiles').select('id,nickname').in('id',guestUids);
+    (gProfs||[]).forEach(p=>{gNickMap[p.id]=p.nickname;});
+  }
   const gBlock=document.getElementById('share-guests-block');
   const gList=document.getElementById('share-guests-list');
   if(guestList.length){
@@ -4997,7 +5233,7 @@ async function openShareSession(){
     gList.innerHTML=guestList.map(g=>`
       <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(48,54,61,.4)">
         <div>
-          <div style="font-size:13px;color:var(--text);font-weight:500">${g.profiles?.nickname||g.user_id.slice(0,8)}</div>
+          <div style="font-size:13px;color:var(--text);font-weight:500">${gNickMap[g.user_id]||g.user_id.slice(0,8)}</div>
           <div style="font-size:10px;color:var(--text3)">${g.role==='editor'?'Співрибак':'Спостерігач'}</div>
         </div>
         <button onclick="removeGuest('${g.id}')" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px 8px">×</button>
@@ -5024,9 +5260,6 @@ async function removeGuest(guestId){
 
 // ── Відкрити вікно приєднання до сесії ──
 function openJoinSession(){
-  if(activeSess&&activeSess.user_id===user.id){
-    toast('Ви вже в активній сесії. Завершіть її або відкрийте доступ через ⚙');return;
-  }
   document.getElementById('js-code').value='';
   document.getElementById('js-info').style.display='none';
   document.getElementById('js-err').textContent='';
@@ -5044,9 +5277,7 @@ async function searchGuestSession(){
   const btn=document.getElementById('js-btn');
   btn.disabled=true;btn.textContent='Пошук...';
 
-  // шукаємо спочатку за editor кодом, потім за viewer
-  let found=null;
-  let role=null;
+  let found=null,role=null;
   const {data:asEditor}=await sb.from('sessions')
     .select('*').eq('is_active',true).eq('share_code_editor',code).maybeSingle();
   if(asEditor){found=asEditor;role='editor';}
@@ -5058,6 +5289,14 @@ async function searchGuestSession(){
 
   btn.disabled=false;
   if(!found){err.textContent='Сесію не знайдено або вона вже завершена';btn.textContent='Знайти сесію';return;}
+
+  // Fix 1: якщо є активна своя сесія — editor заборонено
+  const hasOwnActive=activeSess&&activeSess.user_id===user.id;
+  if(hasOwnActive&&role==='editor'){
+    err.textContent='У вас є активна сесія. Ви можете приєднатися тільки як спостерігач.';
+    btn.textContent='Знайти сесію';
+    return;
+  }
 
   const roleLabel=role==='editor'?'👥 Співрибак — повний доступ':'👁 Спостерігач — тільки перегляд';
   document.getElementById('js-info').style.display='';
@@ -5075,30 +5314,49 @@ async function joinGuestSession(sess,role){
 
   // перевірка чи вже є запис
   const {data:existing}=await sb.from('session_guests')
-    .select('id')
+    .select('id,role')
     .eq('session_id',sess.id)
     .eq('user_id',user.id)
-    .single();
+    .maybeSingle();
 
-  if(!existing){
-    await sb.from('session_guests').insert({
-      session_id:sess.id,
-      user_id:user.id,
-      role
-    });
-  } else {
-    // оновити роль якщо змінилась
-    await sb.from('session_guests').update({role}).eq('id',existing.id);
+  if(existing){
+    // вже є — не змінюємо, просто сповіщаємо
+    btn.disabled=false;
+    closeModal('join-session-modal');
+    const existingRole=existing.role;
+    toast(`Ви вже є ${existingRole==='viewer'?'спостерігачем':'співрибаком'} даної сесії`);
+    // якщо ця сесія ще не в списку — додаємо
+    if(!sessions.find(s=>s.id===sess.id)){sess._guestRole=existingRole;sessions.push(sess);}
+    renderHome();
+    return;
   }
+
+  await sb.from('session_guests').insert({session_id:sess.id,user_id:user.id,role});
 
   btn.disabled=false;
   closeModal('join-session-modal');
   guestSess=sess;
   guestRole=role;
+  // додаємо в sessions якщо ще немає
+  if(!sessions.find(s=>s.id===sess.id)){sess._guestRole=role;sessions.push(sess);}
   await loadGuestBites();
+  await loadFeedingsFromDB(sess.id);
   subscribeGuestRealtime();
+  subscribeFeedingRealtime();
+
+  // viewer НІКОЛИ не стає activeSess — тільки в списку
+  const hasOwnActive=activeSess&&activeSess.user_id===user.id;
+  if(role==='viewer'){
+    renderHome();
+    toast('👁 Ви спостерігач — сесія додана до вашого списку');
+    return;
+  }
+  // editor без своєї активної — встановлюємо як activeSess
+  if(!hasOwnActive){
+    activeSess=sess;bites=guestBites;
+    subscribeOwnerRealtime();
+  }
   renderGuestSession();
-  // показуємо вкладку
   document.getElementById('nav-session').style.display='';
   goPage('session');
   toast(role==='editor'?'✓ Приєднались як співрибак!':'✓ Приєднались як спостерігач');
@@ -5148,12 +5406,10 @@ function subscribeGuestRealtime(){
         const isOnSession=document.getElementById('page-session')?.classList.contains('active');
         if(isOnSession)renderGuestSession();
       }
-      if(p?.feedings_data){
-        localStorage.setItem('feedings_'+guestSess.id,JSON.stringify(p.feedings_data));
-        if(document.getElementById('feeding-modal')?.classList.contains('open'))renderFeedingList();
-      }
     })
     .subscribe();
+  // підписка на годування гостьової сесії
+  subscribeFeedingRealtime();
 }
 
 // ── Render гостьової сесії ──
@@ -5300,9 +5556,13 @@ function loadSessSpotsByKey(key){
 async function leaveGuestSession(silent=false){
   if(!silent&&!confirm('Покинути сесію?'))return;
   if(guestRealtimeSub){sb.removeChannel(guestRealtimeSub);guestRealtimeSub=null;}
+  if(ownerRealtimeSub){sb.removeChannel(ownerRealtimeSub);ownerRealtimeSub=null;}
   if(guestTimerInt){clearInterval(guestTimerInt);guestTimerInt=null;}
+  // якщо activeSess була гостьовою — скидаємо
+  if(activeSess&&guestSess&&activeSess.id===guestSess.id){
+    activeSess=null;bites=[];
+  }
   guestSess=null;guestRole=null;guestBites=[];
-  // відновлюємо нормальний стан
   await loadSessions();
   renderHome();
   goPage('home');
@@ -5313,26 +5573,241 @@ async function leaveGuestSession(silent=false){
 // ── Завантаження гостьових сесій при логіні ──
 async function loadGuestState(){
   try{
-    const {data:guest,error:gErr}=await sb.from('session_guests')
+    const {data:guestRecords}=await sb.from('session_guests')
       .select('*')
-      .eq('user_id',user.id)
-      .maybeSingle();
-    if(gErr||!guest)return;
-    // читаємо сесію — RLS дозволяє через get_guest_session_ids
-    const {data:sess,error:sErr}=await sb.from('sessions')
-      .select('*')
-      .eq('id',guest.session_id)
-      .maybeSingle();
-    if(sErr||!sess||!sess.is_active)return;
-    guestSess=sess;
-    guestRole=guest.role;
-    // підвантажуємо збережені точки і годування з БД в localStorage
-    if(sess.spots_data)localStorage.setItem('sess_spots_'+sess.id,JSON.stringify(sess.spots_data));
-    if(sess.feedings_data)localStorage.setItem('feedings_'+sess.id,JSON.stringify(sess.feedings_data));
-    await loadGuestBites();
-    subscribeGuestRealtime();
-    document.getElementById('nav-session').style.display='';
+      .eq('user_id',user.id);
+    if(!guestRecords?.length)return;
+
+    for(const guest of guestRecords){
+      const {data:sess}=await sb.from('sessions')
+        .select('*').eq('id',guest.session_id).maybeSingle();
+      if(!sess)continue;
+
+      // позначаємо роль
+      sess._guestRole=guest.role;
+
+      // підвантажуємо кеш
+      if(sess.spots_data)localStorage.setItem('sess_spots_'+sess.id,JSON.stringify(sess.spots_data));
+
+      // додаємо в sessions якщо ще немає
+      if(!sessions.find(s=>s.id===sess.id)){
+        sessions.push(sess);
+      } else {
+        // оновлюємо _guestRole якщо вже є
+        const existing=sessions.find(s=>s.id===sess.id);
+        if(existing)existing._guestRole=guest.role;
+      }
+
+      // якщо активна — визначаємо роль і підписки
+      if(sess.is_active){
+        const hasOwnActive=activeSess&&activeSess.user_id===user.id;
+
+        if(guest.role==='editor'&&!hasOwnActive&&!guestSess){
+          // editor без власної активної — стає activeSess
+          guestSess=sess;guestRole=guest.role;
+          await loadGuestBites();
+          await loadFeedingsFromDB(sess.id);
+          bites=guestBites;
+          activeSess=sess;
+          document.getElementById('nav-session').style.display='';
+          subscribeGuestRealtime();
+          subscribeOwnerRealtime();
+        } else if(guest.role==='viewer'&&!guestSess){
+          // viewer — зберігаємо як guestSess для realtime але НІКОЛИ не міняємо activeSess
+          guestSess=sess;guestRole=guest.role;
+          await loadGuestBites();
+          await loadFeedingsFromDB(sess.id);
+          subscribeGuestRealtime();
+          subscribeFeedingRealtime();
+          // viewer НІКОЛИ не стає activeSess — тільки в списку
+        }
+      }
+    }
+
+    // сортуємо — нові зверху, активні першими
+    sessions.sort((a,b)=>{
+      if(a.is_active&&!b.is_active)return -1;
+      if(!a.is_active&&b.is_active)return 1;
+      return new Date(b.started_at)-new Date(a.started_at);
+    });
   }catch(e){console.log('loadGuestState err',e);}
+}
+
+// ===== COOP ARCHIVE =====
+async function openCoopArchive(){
+  closeModal('coop-entry-modal');
+  const screen=document.getElementById('coop-archive-screen');
+  screen.style.display='flex';
+  const el=document.getElementById('coop-archive-list');
+  el.innerHTML=`<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Завантаження...</div></div>`;
+
+  // всі сесії де юзер брав участь (як організатор або учасник)
+  const {data:own}=await sb.from('co_sessions').select('*')
+    .eq('owner_id',user.id).order('created_at',{ascending:false});
+  const {data:membered}=await sb.from('co_members').select('session_id')
+    .eq('user_id',user.id);
+  const memberIds=(membered||[]).map(m=>m.session_id);
+
+  let allSess=[...(own||[])];
+  if(memberIds.length){
+    const {data:asMember}=await sb.from('co_sessions').select('*')
+      .in('id',memberIds).order('created_at',{ascending:false});
+    (asMember||[]).forEach(s=>{if(!allSess.find(x=>x.id===s.id))allSess.push(s);});
+  }
+  allSess.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
+  if(!allSess.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🤝</div><div class="empty-title">Спільних сесій ще немає</div></div>`;
+    return;
+  }
+
+  el.innerHTML=allSess.map(s=>{
+    const isActive=s.is_active;
+    const isOwner=s.owner_id===user.id;
+    return `<div onclick="openCoopArchiveView('${s.id}')" style="background:${isActive?'rgba(46,160,67,.08)':'rgba(22,27,34,.7)'};border:1px solid ${isActive?'rgba(46,160,67,.3)':'var(--border)'};border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${s.lake_name}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${isOwner?`<span style="font-size:9px;color:var(--gold);background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:4px;padding:1px 6px">організатор</span>`:''}
+          <span class="badge ${isActive?'badge-active':'badge-done'}">${isActive?'● Активна':'Завершена'}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${fmtDate(s.started_at)} · код: ${s.code}</div>
+    </div>`;
+  }).join('');
+}
+
+function closeCoopArchive(){
+  document.getElementById('coop-archive-screen').style.display='none';
+}
+
+async function openCoopArchiveView(sessId){
+  const screen=document.getElementById('coop-archive-view-screen');
+  screen.style.display='flex';
+  const el=document.getElementById('coop-archive-view-content');
+  el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text3)">Завантаження...</div>`;
+
+  // завантажуємо сесію, команди, клювання, учасників з нікнеймами
+  const {data:sess}=await sb.from('co_sessions').select('*').eq('id',sessId).single();
+  const {data:teams}=await sb.from('co_teams').select('*').eq('session_id',sessId).order('created_at');
+  const {data:allBites}=await sb.from('bites').select('*').eq('coop_session_id',sessId).order('bitten_at',{ascending:true});
+  const {data:allMembersRaw}=await sb.from('co_members').select('*').eq('session_id',sessId);
+  // завантажуємо нікнейми окремо
+  const memberUserIds=[...new Set((allMembersRaw||[]).map(m=>m.user_id))];
+  let memberNickMap={};
+  if(memberUserIds.length){
+    const {data:mProfiles}=await sb.from('profiles').select('id,nickname').in('id',memberUserIds);
+    (mProfiles||[]).forEach(p=>{memberNickMap[p.id]=p.nickname;});
+  }
+  const allMembers=(allMembersRaw||[]).map(m=>({...m,_nick:memberNickMap[m.user_id]||null}));
+
+  document.getElementById('coop-arch-title').textContent=sess.lake_name;
+
+  if(!teams?.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">🤝</div><div class="empty-title">Немає даних</div></div>`;return;}
+
+  // статистика по командах
+  const TOP_N=5;
+  const stats=teams.map(team=>{
+    const bites=(allBites||[]).filter(b=>b.team_id===team.id&&b.weight>0).map(b=>b.weight).sort((a,b)=>b-a);
+    const bf=bites[0]||0;
+    const top5=bites.slice(0,TOP_N);
+    const total=top5.reduce((s,w)=>s+w,0);
+    const totalAll=bites.reduce((s,w)=>s+w,0);
+    return{team,bites,bf,top5,total,totalAll,count:bites.length};
+  });
+  const rankBy=(arr,key)=>{
+    const sorted=[...arr].sort((a,b)=>b[key]-a[key]);
+    const ranks={};
+    sorted.forEach((item,i)=>{const prev=i>0?sorted[i-1]:null;ranks[item.team.id]=prev&&prev[key]===item[key]?ranks[prev.team.id]:i+1;});
+    return ranks;
+  };
+  const bfRanks=rankBy(stats,'bf');
+  const totalRanks=rankBy(stats,'total');
+  const finals=stats.map(s=>({...s,finalScore:(bfRanks[s.team.id]||stats.length)+(totalRanks[s.team.id]||stats.length)}));
+  finals.sort((a,b)=>a.finalScore-b.finalScore);
+  const medal=p=>p===1?'🥇':p===2?'🥈':p===3?'🥉':`${p}.`;
+  const pColor=p=>p===1?'var(--gold)':p===2?'#8b949e':p===3?'#cd7f32':'var(--text2)';
+
+  // підрахунок фінальних місць
+  const finalRanks={};
+  finals.forEach((f,i)=>{const prev=i>0?finals[i-1]:null;finalRanks[f.team.id]=prev&&prev.finalScore===f.finalScore?finalRanks[prev.team.id]:i+1;});
+
+  // рендер
+  let html=`
+    <!-- Хедер -->
+    <div class="coop-session-header" style="margin:14px 0 12px;padding:12px 14px">
+      <div class="coop-session-title">${sess.is_active?'<span class="live-dot"></span>АКТИВНА':'ЗАВЕРШЕНА'} · #${sess.code}</div>
+      <div class="coop-session-lake">${sess.lake_name}</div>
+      <div class="coop-session-meta">${fmtDate(sess.started_at)} — ${fmtDate(sess.ends_at)}</div>
+    </div>
+
+    <!-- Підсумкова таблиця -->
+    <div class="section-label" style="margin-bottom:8px">🏆 Підсумок</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:16px">
+      <div style="padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+        <div style="font-size:9px;color:var(--text3)">місце БФ + місце суми топ-5</div>
+        <div style="font-size:9px;color:var(--text3)">менше = краще</div>
+      </div>
+      ${finals.map(f=>{
+        const teamMembers=(allMembers||[]).filter(m=>m.team_id===f.team.id);
+        const memberNames=teamMembers.map(m=>{
+          const nick=m._nick||m.user_id.slice(0,6);
+          return m.is_captain?`${nick} ⭐`:nick;
+        }).join(', ');
+        return `
+      <div style="display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid rgba(48,54,61,.5);${finalRanks[f.team.id]===1?'background:rgba(201,168,76,.07)':''}">
+        <div style="font-size:${finalRanks[f.team.id]===1?'16':'12'}px;width:26px;flex-shrink:0">${medal(finalRanks[f.team.id])}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:${pColor(finalRanks[f.team.id])}">${f.team.name}</div>
+          ${memberNames?`<div style="font-size:10px;color:#63b0ff;margin-top:1px">👥 ${memberNames}</div>`:''}
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">БФ: ${f.bf.toFixed(2)} · Топ-5: ${f.total.toFixed(2)} кг · ${f.count} кл.</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:${pColor(finalRanks[f.team.id])}">${f.finalScore}</div>
+          <div style="font-size:9px;color:var(--text3)">балів</div>
+        </div>
+      </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Клювання по командах -->
+    <div class="section-label" style="margin-bottom:10px">🐟 Клювання по командах</div>
+  `;
+
+  teams.forEach(team=>{
+    const teamBites=(allBites||[]).filter(b=>b.team_id===team.id).sort((a,b)=>new Date(a.bitten_at)-new Date(b.bitten_at));
+    const totalW=teamBites.reduce((s,b)=>s+(b.weight||0),0);
+    // нікнейми учасників команди
+    const teamMembers=(allMembers||[]).filter(m=>m.team_id===team.id);
+    const memberNames=teamMembers.map(m=>{
+      const nick=m._nick||m.user_id.slice(0,8);
+      return m.is_captain?`${nick} ⭐`:nick;
+    }).join(', ');
+    html+=`
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${medal(finalRanks[team.id]||'?')} ${team.name}</div>
+          <div style="font-size:12px;color:var(--gold2);font-family:'Cormorant Garamond',serif;font-weight:600">${totalW.toFixed(2)} кг · ${teamBites.length} кл.</div>
+        </div>
+        ${memberNames?`<div style="font-size:11px;color:#63b0ff;margin-bottom:4px">👥 ${memberNames}</div>`:''}
+        ${team.sector?`<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📍 ${team.sector} · 🎣 ${team.rods||2} вуд.${team.rig?' · '+team.rig:''}</div>`:''}
+        ${teamBites.length?teamBites.map(b=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.3)">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#e05c5c;min-width:50px">${(b.weight||0).toFixed(2)}<span style="font-size:10px;color:var(--text3)"> кг</span></div>
+            <div style="flex:1">
+              <div style="font-size:12px;color:var(--text)">${b.fish_type||'—'}${b.bait_type?` · ${b.bait_type}`:''}</div>
+              <div style="font-size:10px;color:var(--text3)">${fmtDateShort(b.bitten_at)}</div>
+            </div>
+          </div>`).join('')
+        :`<div style="font-size:12px;color:var(--text3)">Клювань не було</div>`}
+      </div>`;
+  });
+
+  el.innerHTML=html;
+}
+
+function closeCoopArchiveView(){
+  document.getElementById('coop-archive-view-screen').style.display='none';
 }
 
 init();
