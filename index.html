@@ -454,9 +454,10 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
         <div id="header-nick" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);font-weight:400;letter-spacing:0;min-height:16px"></div>
       </div>
       <div class="header-right">
-        <button class="coop-btn" id="coop-header-btn" onclick="openCoopEntry()" style="display:none">🤝 Спільна</button>
+        <button class="icon-btn" id="coop-header-btn" onclick="openCoopEntry()" style="display:none;font-size:14px">🤝</button>
+        <button class="icon-btn" id="join-sess-btn" onclick="openJoinSession()" style="display:none;font-size:14px" title="Приєднатись до сесії">🔗</button>
         <button class="icon-btn" onclick="openModal('settings-modal')">⚙</button>
-        <button class="icon-btn" onclick="doLogout()">Вийти</button>
+        <button class="icon-btn" onclick="confirmLogout()">↩</button>
       </div>
     </div>
     <div class="nav">
@@ -706,7 +707,10 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 <div class="modal-overlay" id="sess-spots-modal">
   <div class="modal" id="sess-spots-modal-inner">
     <div class="modal-handle" id="sess-spots-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
-    <div class="modal-head"><div class="modal-title">⚙ Налаштування сесії</div></div>
+    <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between;padding-right:20px">
+      <div class="modal-title">⚙ Налаштування сесії</div>
+      <button onclick="openShareSession()" style="background:rgba(99,176,255,.12);border:1px solid rgba(99,176,255,.3);border-radius:var(--r2);padding:5px 10px;color:#63b0ff;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap">🔗 Доступ</button>
+    </div>
     <div class="modal-body" id="sess-spots-body">
     </div>
   </div>
@@ -989,6 +993,68 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
   </div>
 </div>
 
+<!-- ===== SHARE SESSION MODAL ===== -->
+<div class="modal-overlay" id="share-session-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">🔗 Доступ до сесії</div></div>
+    <div class="modal-body">
+      <!-- Editor code -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">Співрибак — повний доступ</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">Може додавати, редагувати та видаляти клювання, керувати точками лову і годуванням</div>
+        <div class="coop-code-box" id="share-editor-box" onclick="copyShareCode('editor')" style="cursor:pointer">
+          <div class="coop-code" id="share-editor-code" style="font-size:32px;letter-spacing:5px">——————</div>
+          <div class="coop-code-hint">НАТИСНИ ЩОБ СКОПІЮВАТИ</div>
+        </div>
+      </div>
+      <!-- Viewer code -->
+      <div style="margin-bottom:4px">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">Спостерігач — тільки перегляд</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">Бачить клювання в реальному часі, але нічого не може змінити</div>
+        <div class="coop-code-box" id="share-viewer-box" onclick="copyShareCode('viewer')" style="cursor:pointer;border-color:var(--border2)">
+          <div class="coop-code" id="share-viewer-code" style="font-size:32px;letter-spacing:5px;color:var(--text2)">——————</div>
+          <div class="coop-code-hint">НАТИСНИ ЩОБ СКОПІЮВАТИ</div>
+        </div>
+      </div>
+      <!-- Current guests list -->
+      <div id="share-guests-block" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">Приєднані</div>
+        <div id="share-guests-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeModal('share-session-modal')">Закрити</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JOIN SESSION MODAL ===== -->
+<div class="modal-overlay" id="join-session-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">🔗 Приєднатись до сесії</div></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Код доступу</label>
+        <input type="text" id="js-code" placeholder="НАПР. AB12CD" autocomplete="off" maxlength="8"
+          style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:600;text-align:center"
+          oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+      </div>
+      <div id="js-info" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px" id="js-role-label"></div>
+        <div id="js-info-lake" style="font-size:15px;font-weight:600;color:var(--text)"></div>
+        <div id="js-info-dates" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
+      </div>
+      <div id="js-err" style="color:var(--red);font-size:12px;text-align:center;min-height:16px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="js-btn" onclick="searchGuestSession()">Знайти сесію</button>
+      <button class="cancel-btn" onclick="closeModal('join-session-modal')">Скасувати</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -998,6 +1064,9 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 
 // State
 let user=null,settings=null,sessions=[],activeSess=null,bites=[],timerInt=null;
+let _coopSpotsMode=false;
+let _guestSpotsMode=false;
+let ownerRealtimeSub=null;
 let selRodCount=2,curBaitType='popup';
 
 const DUR={Денна:12,Доба:24,'Дві доби':48};
@@ -1109,6 +1178,24 @@ async function doLogout(){
   location.reload();
 }
 
+function confirmLogout(){
+  const dlg=document.createElement('div');
+  dlg.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+  dlg.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:280px;width:90%;text-align:center">
+      <div style="font-size:32px;margin-bottom:10px">↩</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text);margin-bottom:8px">Вийти з акаунту?</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:22px;line-height:1.5">Всі дані збережені в хмарі</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button id="dlg-cancel" style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px 22px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Скасувати</button>
+        <button id="dlg-confirm" style="background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.3);border-radius:10px;padding:10px 22px;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Вийти</button>
+      </div>
+    </div>`;
+  document.body.appendChild(dlg);
+  dlg.querySelector('#dlg-cancel').onclick=()=>dlg.remove();
+  dlg.querySelector('#dlg-confirm').onclick=()=>{dlg.remove();doLogout();};
+}
+
 // Init
 let appStarted=false;
 async function init(){
@@ -1138,6 +1225,7 @@ async function onLogin(u){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('coop-header-btn').style.display='';
+  document.getElementById('join-sess-btn').style.display='';
   // показуємо одразу щоб не було вічної загрузки
   document.getElementById('home-content').innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Завантаження...</div></div>`;
   try{
@@ -1149,6 +1237,7 @@ async function onLogin(u){
   try{await loadSettings();}catch(e){console.log('settings err',e)}
   try{await loadSessions();}catch(e){console.log('sessions err',e)}
   try{await loadCoopState();}catch(e){console.log('coop err',e)}
+  try{await loadGuestState();}catch(e){console.log('guest err',e)}
   renderHome();
 }
 
@@ -1350,14 +1439,60 @@ async function loadSessions(){
   if(activeSess){
     document.getElementById('nav-session').style.display='';
     await loadBites(activeSess.id);
+    subscribeOwnerRealtime();
   } else {
     document.getElementById('nav-session').style.display='none';
     bites=[];
+    if(ownerRealtimeSub){sb.removeChannel(ownerRealtimeSub);ownerRealtimeSub=null;}
   }
 }
 async function loadBites(sid){
-  const {data}=await sb.from('bites').select('*').eq('session_id',sid).order('bitten_at',{ascending:true});
+  const {data}=await sb.from('bites').select('*').eq('session_id',sid).is('coop_session_id',null).order('bitten_at',{ascending:true});
   bites=data||[];
+}
+
+// Підписка власника сесії на всі клювання (включаючи від гостей)
+function subscribeOwnerRealtime(){
+  if(ownerRealtimeSub){sb.removeChannel(ownerRealtimeSub);ownerRealtimeSub=null;}
+  if(!activeSess)return;
+  ownerRealtimeSub=sb.channel('owner-sess-'+activeSess.id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'bites',
+      filter:`session_id=eq.${activeSess.id}`},payload=>{
+      const b=payload.new;
+      if(b.coop_session_id)return;
+      if(!bites.find(x=>x.id===b.id))bites.push(b);
+      bites.sort((a,c)=>new Date(a.bitten_at)-new Date(c.bitten_at));
+      if(document.getElementById('page-session')?.classList.contains('active'))renderSession();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'bites',
+      filter:`session_id=eq.${activeSess.id}`},async()=>{
+      await loadBites(activeSess.id);
+      if(document.getElementById('page-session')?.classList.contains('active'))renderSession();
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'bites',
+      filter:`session_id=eq.${activeSess.id}`},async()=>{
+      await loadBites(activeSess.id);
+      if(document.getElementById('page-session')?.classList.contains('active'))renderSession();
+    })
+    // підписка на зміни spots_data і feedings_data від гостей
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessions',
+      filter:`id=eq.${activeSess.id}`},payload=>{
+      const p=payload.new;
+      // spots_data
+      if(p?.spots_data){
+        const d=_parseSessData(p.spots_data);
+        sessSpots=d.spots;sessPegDist=d.pegDist;sessShowRod=d.showRod;sessOpts=d.opts;
+        localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify(p.spots_data));
+        if(document.getElementById('sess-spots-modal')?.classList.contains('open'))renderSessSpots();
+        if(!guestSess&&document.getElementById('bites-list'))renderBitesList();
+      }
+      // feedings_data
+      if(p?.feedings_data){
+        localStorage.setItem('feedings_'+activeSess.id,JSON.stringify(p.feedings_data));
+        if(document.getElementById('feeding-modal')?.classList.contains('open'))renderFeedingList();
+      }
+    })
+    .subscribe();
 }
 
 // Navigation
@@ -1370,15 +1505,20 @@ function goPage(p){
   const fab=document.getElementById('fab');
   const lbl=document.getElementById('fab-label');
   if(p==='home'){fab.classList.remove('hidden');lbl.textContent='Нова сесія'}
-  else if(p==='session'&&activeSess){fab.classList.remove('hidden');lbl.textContent='Клювання'}
+  else if(p==='session'&&(activeSess||guestSess)){fab.classList.remove('hidden');lbl.textContent='Клювання'}
   else{fab.classList.add('hidden')}
-  if(p==='session')renderSession();
+  if(p==='session'){
+    if(guestSess&&!activeSess)renderGuestSession();
+    else renderSession();
+  }
   if(p==='stats'){statsMode='all';renderStats();}
 }
 function onFab(){
   const active=document.querySelector('.page.active');
-  if(active?.id==='page-session')openNewBite();
-  else openNewSession();
+  if(active?.id==='page-session'){
+    if(guestSess&&guestRole==='editor'&&!activeSess)openGuestBite();
+    else openNewBite();
+  } else openNewSession();
 }
 
 // HOME
@@ -1388,8 +1528,8 @@ async function renderHome(){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Ще немає сесій</div><div class="empty-sub">Натисни "+ Нова сесія"<br>щоб розпочати першу рибалку</div></div>`;
     return;
   }
-  // load weight totals for all sessions
-  const {data:allBites}=await sb.from('bites').select('session_id,weight').eq('user_id',user.id);
+  // load weight totals for all sessions — exclude coop bites (they have coop_session_id set)
+  const {data:allBites}=await sb.from('bites').select('session_id,weight').eq('user_id',user.id).is('coop_session_id',null);
   const weightMap={};
   (allBites||[]).forEach(b=>{weightMap[b.session_id]=(weightMap[b.session_id]||0)+(b.weight||0)});
   const countMap={};
@@ -1706,6 +1846,12 @@ async function saveSession(){
   const notes=document.getElementById('ns-notes').value.trim();
   const startVal=document.getElementById('ns-start').value;
   if(!lake){toast('Оберіть водойму');return}
+  if(!sector){
+    const sEl=document.getElementById('ns-sector');
+    sEl.style.borderColor='var(--red)';sEl.placeholder='Обов\'язково!';sEl.focus();
+    setTimeout(()=>{sEl.style.borderColor='';sEl.placeholder='Напр. 7, А3, Правий берег...';},2500);
+    toast('⚠ Вкажіть сектор');return;
+  }
   const rigEl=document.querySelector('#ns-rig .seg-btn.active');
   const durEl=document.querySelector('#ns-dur .seg-btn.active');
   const rig=rigEl?.textContent||'Метод флет';
@@ -1745,7 +1891,7 @@ async function endSession(){
 async function openArchiveSession(sessId){
   const sess=sessions.find(s=>s.id===sessId);
   if(!sess)return;
-  const {data:sessB}=await sb.from('bites').select('*').eq('session_id',sessId).order('bitten_at',{ascending:false});
+  const {data:sessB}=await sb.from('bites').select('*').eq('session_id',sessId).is('coop_session_id',null).order('bitten_at',{ascending:false});
   const sb_bites=sessB||[];
   const totalW=sb_bites.reduce((s,b)=>s+(b.weight||0),0);
   const maxB=sb_bites.reduce((a,b)=>(!a||(b.weight||0)>(a.weight||0))?b:a,null);
@@ -1821,8 +1967,8 @@ function openNewBite(){
   document.getElementById('nb-size-block').style.display='none';
   document.getElementById('nb-size-boil-block').style.display='none';
   document.getElementById('nb-color-block').style.display='';
-  loadSessSpots();
-  buildSpotsChips();
+  loadSessSpots().then(()=>buildSpotsChips()); // async, but chips will update after
+  buildSpotsChips(); // initial render with cached data
   openModal('new-bite-modal');
 }
 
@@ -1896,9 +2042,10 @@ function selBaitType(btn,type){
 }
 
 async function saveBite(){
-  // delegate to coop mode if needed
+  // delegate to coop or guest mode if needed
   const btn=document.getElementById('nb-btn');
   if(btn?.dataset.coopMode==='1'){await saveCoopBiteImpl();return;}
+  if(btn?.dataset.guestMode==='1'){await saveGuestBiteImpl();return;}
   const fishEl=document.querySelector('#nb-fish .chip.active');
   const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
   const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
@@ -1969,23 +2116,58 @@ let sessPegDist=5;
 let sessShowRod=false;
 let sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};
 
-function loadSessSpots(){
+const DEFAULT_OPTS={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};
+
+function _parseSessData(raw){
+  if(!raw)return{spots:[],pegDist:5,showRod:false,opts:{...DEFAULT_OPTS}};
   try{
-    const raw=localStorage.getItem('sess_spots_'+activeSess?.id);
-    if(raw){
-      const p=JSON.parse(raw);
-      sessSpots=p.spots||[];sessPegDist=p.pegDist||5;sessShowRod=p.showRod||false;
-      sessOpts=Object.assign({rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true},p.opts||{});
-    } else {sessSpots=[];sessPegDist=5;sessShowRod=false;sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};}
-  }catch{sessSpots=[];sessPegDist=5;sessShowRod=false;sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};}
+    const p=typeof raw==='string'?JSON.parse(raw):raw;
+    return{
+      spots:p.spots||[],
+      pegDist:p.pegDist||5,
+      showRod:p.showRod||false,
+      opts:Object.assign({...DEFAULT_OPTS},p.opts||{})
+    };
+  }catch{return{spots:[],pegDist:5,showRod:false,opts:{...DEFAULT_OPTS}};}
 }
+
+function _getSessId(){
+  if(_coopSpotsMode&&coopMyTeam)return null; // кооп — окремо
+  if(_guestSpotsMode&&guestSess)return guestSess.id;
+  return activeSess?.id||null;
+}
+
+async function loadSessSpots(){
+  const sid=_guestSpotsMode?guestSess?.id:activeSess?.id;
+  if(!sid){sessSpots=[];sessPegDist=5;sessShowRod=false;sessOpts={...DEFAULT_OPTS};return;}
+  // спочатку локальний кеш для швидкості
+  const cached=localStorage.getItem('sess_spots_'+sid);
+  if(cached){const d=_parseSessData(cached);sessSpots=d.spots;sessPegDist=d.pegDist;sessShowRod=d.showRod;sessOpts=d.opts;}
+  // потім Supabase (джерело правди)
+  try{
+    const {data:sess,error}=await sb.from('sessions').select('spots_data').eq('id',sid).maybeSingle();
+    if(error){console.log('loadSessSpots read err:',error.message);return;}
+    if(sess?.spots_data){
+      const d=_parseSessData(sess.spots_data);
+      sessSpots=d.spots;sessPegDist=d.pegDist;sessShowRod=d.showRod;sessOpts=d.opts;
+      localStorage.setItem('sess_spots_'+sid,JSON.stringify(sess.spots_data));
+    }
+  }catch(e){console.log('loadSessSpots err',e);}
+}
+
 function saveSessSpots(){
   if(_coopSpotsMode&&coopMyTeam){
     localStorage.setItem('coop_spots_'+coopMyTeam.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist,opts:sessOpts}));
     return;
   }
-  if(!activeSess)return;
-  localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist,showRod:sessShowRod,opts:sessOpts}));
+  const sid=_getSessId();
+  if(!sid)return;
+  const payload={spots:sessSpots,pegDist:sessPegDist,showRod:sessShowRod,opts:sessOpts};
+  localStorage.setItem('sess_spots_'+sid,JSON.stringify(payload));
+  // зберігаємо в Supabase асинхронно з логуванням помилки
+  sb.from('sessions').update({spots_data:payload}).eq('id',sid).then(({error})=>{
+    if(error)console.log('saveSessSpots write err:',error.message,error.code);
+  });
 }
 function toggleSessOpt(key){
   sessOpts[key]=!sessOpts[key];
@@ -1996,15 +2178,16 @@ function toggleSessOpt(key){
   if(document.getElementById('bites-list'))renderBitesList();
 }
 
-function openSessSpots(){
-  loadSessSpots();
+async function openSessSpots(){
+  await loadSessSpots();
   renderSessSpots();
   document.getElementById('sess-spots-modal').classList.add('open');
 }
 
 function renderSessSpots(){
   const body=document.getElementById('sess-spots-body');
-  const totalRods=activeSess?.rods||2;
+  const currentSess=activeSess||guestSess;
+  const totalRods=currentSess?.rods||2;
   // all assigned rod numbers
   const assignedRods=new Set(sessSpots.flatMap(s=>s.rods||[]));
   const unassigned=[];
@@ -2203,14 +2386,11 @@ function renameSpot(si,v){sessSpots[si].name=v;saveSessSpots();}
 function setSpotDist(si,v){sessSpots[si].dist=parseFloat(v)||null;saveSessSpots();renderSessSpots();}
 function setPegDist(v){sessPegDist=v;saveSessSpots();renderSessSpots();}
 function closeSessSpots(){
-  // check all spots have distance
   const missing=sessSpots.find(s=>s.active!==false&&!s.dist);
-  if(missing){
-    toast(`⚠ Вкажіть метри для "${missing.name}"`);
-    return;
-  }
+  if(missing){toast(`⚠ Вкажіть метри для "${missing.name}"`);return;}
   saveSessSpots();
   _coopSpotsMode=false;
+  _guestSpotsMode=false;
   document.getElementById('sess-spots-modal').classList.remove('open');
   buildSpotsChips();
 }
@@ -2280,7 +2460,7 @@ function buildSpotsChips(){
 
 // Rod chip tooltip for pegs — called from bite card "Вуд. X" tag
 function showPegTooltip(e,rodNum,distM){
-  if(activeSess)loadSessSpots();
+  if(activeSess)loadSessSpots().catch(()=>{}); // refresh cache async
   // use the bite's own distance if provided, else fall back to spot distance
   const dist=distM||(() => {
     const spot=sessSpots.find(s=>(s.rods||[]).map(Number).includes(Number(rodNum))&&s.active!==false);
@@ -2352,18 +2532,22 @@ function scrollToBigFish(){
 let biteFilters={};
 function toggleBiteFilter(key,val){
   if(biteFilters[key]===val)delete biteFilters[key];
-  else biteFilters[key]=val;
+  else biteFilters[key]=String(val);
   renderBitesList();
 }
 function clearBiteFilters(){biteFilters={};renderBitesList();}
 function renderBitesList(){
-  const filtered=bites.filter(b=>{
+  const isGuest=!!guestSess&&!activeSess;
+  const sourceBites=isGuest?guestBites:bites;
+  const filtered=sourceBites.filter(b=>{
     for(const [k,v] of Object.entries(biteFilters)){
       if(k==='distance_m'){if(Number(b[k])!==Number(v))return false;}
       else if(b[k]!==v)return false;
     }
     return true;
   });
+  // newest at bottom — sort ascending by bitten_at
+  const sorted=[...filtered].sort((a,b)=>new Date(a.bitten_at)-new Date(b.bitten_at));
   const tags=Object.entries(biteFilters).map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:3px 8px;font-size:11px;color:var(--gold)">${v}<button onclick="toggleBiteFilter('${k}','${v}')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;padding:2px 4px;line-height:1;min-width:22px;min-height:22px">×</button></span>`).join('');
   const filterBar=Object.keys(biteFilters).length?
     `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding:4px 0">
@@ -2371,10 +2555,13 @@ function renderBitesList(){
        <button onclick="clearBiteFilters()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline">Скинути</button>
     </div>`:'';
   const lbl=document.querySelector('.section-label');
-  if(lbl)lbl.innerHTML=`Клювання <span>${filtered.length}${Object.keys(biteFilters).length?' / '+bites.length:''}</span>`;
+  if(lbl)lbl.innerHTML=`Клювання <span>${sorted.length}${Object.keys(biteFilters).length?' / '+sourceBites.length:''}</span>`;
   let html=filterBar;
-  if(!filtered.length)html+=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Немає клювань за фільтром</div>`;
-  else filtered.forEach((b,i)=>{html+=biteCardHTML(b,activeSess?.started_at,true,filtered.length-i);});
+  if(!sorted.length)html+=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Немає клювань за фільтром</div>`;
+  else{
+    const sessStart=(isGuest?guestSess:activeSess)?.started_at;
+    sorted.forEach((b,i)=>{html+=biteCardHTML(b,sessStart,!isGuest,sorted.length-i);});
+  }
   const bl=document.getElementById('bites-list');
   if(bl)bl.innerHTML=html;
 }
@@ -2509,12 +2696,46 @@ setTimeout(()=>{
 },500);
 
 // ===== FEEDING =====
-function loadFeedings(){
-  try{return JSON.parse(localStorage.getItem('feedings_'+activeSess?.id)||'[]');}catch{return[];}
+// ── FEEDINGS — зберігаються в sessions.feedings_data ──
+function _getFeedSessId(){
+  if(guestSess&&!activeSess)return guestSess.id;
+  return activeSess?.id||null;
 }
-function saveFeedings(arr){localStorage.setItem('feedings_'+activeSess?.id,JSON.stringify(arr));}
 
-function openFeeding(){
+function loadFeedings(){
+  const sid=_getFeedSessId();
+  if(!sid)return[];
+  try{return JSON.parse(localStorage.getItem('feedings_'+sid)||'[]');}catch{return[];}
+}
+
+function saveFeedings(arr){
+  const sid=_getFeedSessId();
+  if(!sid)return;
+  localStorage.setItem('feedings_'+sid,JSON.stringify(arr));
+  // зберігаємо в Supabase асинхронно
+  sb.from('sessions').update({feedings_data:arr}).eq('id',sid).then(({error})=>{
+    if(error)console.log('saveFeedings err:',error.message);
+  });
+}
+
+async function loadFeedingsFromDB(sid){
+  try{
+    const {data}=await sb.from('sessions').select('feedings_data').eq('id',sid).maybeSingle();
+    if(data?.feedings_data){
+      localStorage.setItem('feedings_'+sid,JSON.stringify(data.feedings_data));
+      return data.feedings_data;
+    }
+  }catch(e){}
+  return JSON.parse(localStorage.getItem('feedings_'+sid)||'[]');
+}
+
+function getFeedingTotal(sessId){
+  try{return JSON.parse(localStorage.getItem('feedings_'+sessId)||'[]').reduce((s,f)=>s+(parseFloat(f.weight)||0),0);}catch{return 0;}
+}
+
+async function openFeeding(){
+  const sid=_getFeedSessId();
+  if(sid)await loadFeedingsFromDB(sid);
   document.getElementById('feed-weight').value='';
   document.getElementById('feed-time').value=toLocalDT();
   document.getElementById('feed-notes').value='';
@@ -2564,9 +2785,6 @@ function deleteFeeding(i){
   feedings.splice(i,1);
   saveFeedings(feedings);
   renderFeedingList();
-}
-function getFeedingTotal(sessId){
-  try{return JSON.parse(localStorage.getItem('feedings_'+sessId)||'[]').reduce((s,f)=>s+(parseFloat(f.weight)||0),0);}catch{return 0;}
 }
 
 // ===== BITES LIST OVERLAY (for stats taps) =====
@@ -2692,7 +2910,7 @@ async function renderStatsBody(targetEl){
   if(!el)return;
   el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Завантаження...</div>`;
 
-  let query=sb.from('bites').select('*,sessions(lake_name,sector)').eq('user_id',user.id);
+  let query=sb.from('bites').select('*,sessions(lake_name,sector)').eq('user_id',user.id).is('coop_session_id',null);
   if(statsMode==='session'&&statsSessionId){
     query=query.eq('session_id',statsSessionId);
   }
@@ -3298,9 +3516,15 @@ async function saveCoopTeam(){
     setTimeout(()=>document.getElementById('ct-name').style.borderColor='',2000);
     toast('⚠ Введіть назву команди');return;
   }
+  const sector=document.getElementById('ct-sector').value.trim();
+  if(!sector){
+    const sEl=document.getElementById('ct-sector');
+    sEl.style.borderColor='var(--red)';sEl.focus();
+    setTimeout(()=>sEl.style.borderColor='',2000);
+    toast('⚠ Вкажіть сектор');return;
+  }
   const btn=document.getElementById('ct-btn');
   btn.disabled=true;btn.textContent='Збереження...';
-  const sector=document.getElementById('ct-sector').value.trim();
   const bait=document.getElementById('ct-bait').value.trim();
   const rigEl=document.querySelector('#ct-rig .seg-btn.active');
   const rig=rigEl?.textContent||'Метод флет';
@@ -4217,6 +4441,59 @@ async function saveCoopBiteImpl(){
   },320);
 }
 
+async function saveGuestBiteImpl(){
+  const fishEl=document.querySelector('#nb-fish .chip.active');
+  const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
+  const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
+  const weight=parseFloat((document.getElementById('nb-weight').value||'').replace(',','.'))||null;
+  if(!weight){
+    const wInp=document.getElementById('nb-weight');
+    wInp.style.border='1px solid var(--red)';
+    wInp.setAttribute('placeholder','Обов\'язково!');wInp.focus();
+    setTimeout(()=>{wInp.style.border='';wInp.removeAttribute('placeholder');},2500);
+    toast('⚠ Вкажіть вагу риби');return;
+  }
+  const dist=parseFloat(document.getElementById('nb-dist').value)||null;
+  const rodEl=document.querySelector('#nb-rod-chips .rod-chip.active');
+  const rod=rodEl?parseInt(rodEl.textContent):null;
+  const flavorEl=document.querySelector('#nb-flavor .chip.active');
+  const flavor=flavorEl?.textContent||null;
+  const colorEl=document.querySelector('#nb-color .color-chip.active');
+  const colorText=colorEl?.textContent?.trim()||null;
+  const sizeEl=curBaitType==='boil'?document.querySelector('#nb-size-boil .seg-btn.active'):document.querySelector('#nb-size .seg-btn.active');
+  const size=sizeEl?.textContent||null;
+  const timeVal=document.getElementById('nb-time').value;
+  const notes=document.getElementById('nb-notes').value.trim();
+  const baitTypeLabel={'popup':'Поп-ап','balance':'Баланс','boil':'Бойл'}[curBaitType];
+  const btn=document.getElementById('nb-btn');
+  btn.disabled=true;btn.textContent='Збереження...';
+  const bitePayload={
+    user_id:user.id,session_id:guestSess.id,
+    fish_type:fish,weight,distance_m:dist,rod_number:rod,
+    bait_type:baitTypeLabel,bait_flavor:flavor,bait_color:colorText,bait_size:size,
+    notes,is_unwanted:isUnwanted,
+    bitten_at:timeVal?new Date(timeVal).toISOString():new Date().toISOString()
+  };
+  let error,savedBite;
+  if(editBiteId){
+    const res=await sb.from('bites').update(bitePayload).eq('id',editBiteId).select().single();
+    error=res.error;savedBite=res.data;editBiteId=null;
+  } else {
+    const res=await sb.from('bites').insert(bitePayload).select().single();
+    error=res.error;savedBite=res.data;
+  }
+  btn.disabled=false;btn.textContent='Зберегти клювання';
+  delete btn.dataset.guestMode;
+  if(error){toast('Помилка: '+error.message);return;}
+  if(savedBite){
+    const idx=guestBites.findIndex(b=>b.id===savedBite.id);
+    if(idx>=0)guestBites[idx]=savedBite;else guestBites.push(savedBite);
+  }
+  closeModal('new-bite-modal');
+  toast(isUnwanted?'⚠ Небажана риба зафіксована':'✓ Клювання збережено!');
+  setTimeout(()=>renderGuestSession(),320);
+}
+
 async function deleteCoopBite(id){
   if(!confirm('Видалити цю клювання?'))return;
   const teamId=coopMyTeam?.id;
@@ -4313,6 +4590,7 @@ async function saveCoopAddTeam(sheetOrOverlay){
   const err=document.getElementById('oat-err');
   if(!name){err.textContent='Введіть назву команди';return}
   const sector=document.getElementById('oat-sector')?.value.trim();
+  if(!sector){err.textContent='Вкажіть сектор';document.getElementById('oat-sector')?.focus();return}
   const bait=document.getElementById('oat-bait')?.value.trim();
   const rods=parseInt(document.querySelector('#oat-rods .rod-chip.active')?.textContent)||2;
   const rig=document.querySelector('#oat-rig .seg-btn.active')?.textContent||'Метод флет';
@@ -4570,172 +4848,491 @@ function closeCoopStats(){
 function renderCoopStats(){
   const el=document.getElementById('coop-stats-content');
   if(!coopAllTeams.length){
-    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Ще немає команд</div></div>`;
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">\U0001f3a3</div><div class="empty-title">\u0415\u0449\u0435 \u043d\u0435\u043c\u0430\u0454 \u043a\u043e\u043c\u0430\u043d\u0434</div></div>`;
     return;
   }
-
-  // ── Збираємо дані для кожної команди ──
-  const TOP_N=5; // топ-5 риб
+  const TOP_N=5;
   const stats=coopAllTeams.map(team=>{
-    const bites=(coopBitesCache[team.id]||[])
-      .filter(b=>b.weight&&b.weight>0)
-      .map(b=>b.weight)
-      .sort((a,b)=>b-a); // від більшої до меншої
-
-    const bf=bites[0]||0;                        // Big Fish
-    const top5=bites.slice(0,TOP_N);             // топ-5
-    const total=top5.reduce((s,w)=>s+w,0);       // сума топ-5
-    const totalAll=bites.reduce((s,w)=>s+w,0);   // сума всіх
-    const count=bites.length;                     // кількість клювань
-
-    return {team,bf,top5,total,totalAll,count,bites};
+    const bites=(coopBitesCache[team.id]||[]).filter(b=>b.weight&&b.weight>0).map(b=>b.weight).sort((a,b)=>b-a);
+    const bf=bites[0]||0;
+    const top5=bites.slice(0,TOP_N);
+    const total=top5.reduce((s,w)=>s+w,0);
+    const totalAll=bites.reduce((s,w)=>s+w,0);
+    const count=bites.length;
+    return{team,bf,top5,total,totalAll,count,bites};
   });
-
-  // ── Ранжування (менший ранг = краще місце) ──
-  const rankBy=(arr,key,asc=false)=>{
-    const sorted=[...arr].sort((a,b)=>asc?a[key]-b[key]:b[key]-a[key]);
+  const rankBy=(arr,key)=>{
+    const sorted=[...arr].sort((a,b)=>b[key]-a[key]);
     const ranks={};
-    sorted.forEach((item,i)=>{
-      // однакові значення — однакове місце
-      const prev=i>0?sorted[i-1]:null;
-      ranks[item.team.id]=prev&&prev[key]===item[key]?ranks[prev.team.id]:i+1;
-    });
+    sorted.forEach((item,i)=>{const prev=i>0?sorted[i-1]:null;ranks[item.team.id]=prev&&prev[key]===item[key]?ranks[prev.team.id]:i+1;});
     return ranks;
   };
-
   const bfRanks=rankBy(stats,'bf');
   const totalRanks=rankBy(stats,'total');
-
-  // Місця по секторах: сума топ-5 — та ж логіка
-  const sectorRanks=totalRanks; // аналогічно total для топ-5
-
-  // Фінальний бал = місце БФ + місце загальної суми (менше = краще)
-  const finals=stats.map(s=>({
-    team:s.team,
-    bfRank:bfRanks[s.team.id]||coopAllTeams.length,
-    totalRank:totalRanks[s.team.id]||coopAllTeams.length,
-    finalScore:(bfRanks[s.team.id]||coopAllTeams.length)+(totalRanks[s.team.id]||coopAllTeams.length),
-    ...s
-  }));
-  // Фінальне місце: менша сума балів = вище
+  const finals=stats.map(s=>({...s,bfRank:bfRanks[s.team.id]||stats.length,totalRank:totalRanks[s.team.id]||stats.length,finalScore:(bfRanks[s.team.id]||stats.length)+(totalRanks[s.team.id]||stats.length)}));
   finals.sort((a,b)=>a.finalScore-b.finalScore);
   const finalRanks={};
-  finals.forEach((f,i)=>{
-    const prev=i>0?finals[i-1]:null;
-    finalRanks[f.team.id]=prev&&prev.finalScore===f.finalScore?finalRanks[prev.team.id]:i+1;
-  });
-
-  const medalEmoji=place=>place===1?'🥇':place===2?'🥈':place===3?'🥉':`${place}.`;
-  const placeColor=place=>place===1?'var(--gold)':place===2?'#8b949e':place===3?'#cd7f32':'var(--text2)';
-
-  // ── Блок 1: Фінальна таблиця ──
-  const finalTableRows=finals.map(f=>`
-    <div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(48,54,61,.5);${finalRanks[f.team.id]===1?'background:rgba(201,168,76,.07)':''}">
-      <div style="font-size:20px;width:32px;flex-shrink:0">${medalEmoji(finalRanks[f.team.id])}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:600;color:${placeColor(finalRanks[f.team.id])}">${f.team.name}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:1px">БФ: ${f.bf.toFixed(2)} кг · Топ-5: ${f.total.toFixed(2)} кг · ${f.count} клювань</div>
+  finals.forEach((f,i)=>{const prev=i>0?finals[i-1]:null;finalRanks[f.team.id]=prev&&prev.finalScore===f.finalScore?finalRanks[prev.team.id]:i+1;});
+  const medal=p=>p===1?'\U0001f947':p===2?'\U0001f948':p===3?'\U0001f949':`${p}.`;
+  const pColor=p=>p===1?'var(--gold)':p===2?'#8b949e':p===3?'#cd7f32':'var(--text2)';
+  const pStyle=p=>p===1?'font-size:16px':'font-size:12px;color:var(--text3)';
+  // sec1 final
+  const secFinal=`<div style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);margin-bottom:10px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>\u041e\u043d\u043e\u0432\u043b\u044e\u0454\u0442\u044c\u0441\u044f \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c\u0443 \u0447\u0430\u0441\u0456</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:12px">
+      <div style="padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+        <div style="font-size:9px;color:var(--text3)">\u043c\u0435\u043d\u0448\u0430 \u0441\u0443\u043c\u0430 \u0431\u0430\u043b\u0456\u0432 = \u0432\u0438\u0449\u0435 \u043c\u0456\u0441\u0446\u0435</div>
+        <div style="font-size:9px;color:var(--text3)">\u043c\u0456\u0441\u0446\u0435 \u0411\u0424 + \u043c\u0456\u0441\u0446\u0435 \u0441\u0443\u043c\u0438</div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:${placeColor(finalRanks[f.team.id])}">${f.finalScore}</div>
-        <div style="font-size:10px;color:var(--text3)">балів</div>
-      </div>
-    </div>`).join('');
-
-  // ── Блок 2: Big Fish ──
+      ${finals.map(f=>`<div style="display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid rgba(48,54,61,.5);${finalRanks[f.team.id]===1?'background:rgba(201,168,76,.07)':''}">
+        <div style="${pStyle(finalRanks[f.team.id])};width:26px;flex-shrink:0">${medal(finalRanks[f.team.id])}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:${pColor(finalRanks[f.team.id])}">${f.team.name}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">\u0411\u0424: ${f.bf.toFixed(2)} \u00b7 \u0422\u043e\u043f-5: ${f.total.toFixed(2)} \u043a\u0433 \u00b7 ${f.count} \u043a\u043b.</div></div>
+        <div style="text-align:right;flex-shrink:0"><div style="font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:600;color:${pColor(finalRanks[f.team.id])}">${f.finalScore}</div>
+        <div style="font-size:9px;color:var(--text3)">\u0431\u0430\u043b\u0456\u0432</div></div></div>`).join('')}
+    </div>`;
+  // sec2 bf
   const bfSorted=[...stats].sort((a,b)=>b.bf-a.bf);
-  const bfRows=bfSorted.map((s,i)=>{
-    const rank=bfRanks[s.team.id];
-    return `<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid rgba(48,54,61,.4)">
-      <div style="font-size:16px;width:28px;flex-shrink:0">${medalEmoji(rank)}</div>
+  const secBF=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:12px">
+    ${bfSorted.map(s=>`<div style="display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(48,54,61,.4)">
+      <div style="${pStyle(bfRanks[s.team.id])};width:26px;flex-shrink:0">${medal(bfRanks[s.team.id])}</div>
       <div style="flex:1;font-size:13px;color:var(--text)">${s.team.name}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#e05c5c">${s.bf?s.bf.toFixed(2):'—'}</div>
-      <div style="font-size:10px;color:var(--text3);margin-left:4px;align-self:flex-end;padding-bottom:3px">кг</div>
-    </div>`;
-  }).join('');
-
-  // ── Блок 3: Топ-5 риб по командах ──
+      <div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;font-weight:700;color:#e05c5c">${s.bf?s.bf.toFixed(2):'\u2014'}</div>
+      <div style="font-size:9px;color:var(--text3);margin-left:3px;align-self:flex-end;padding-bottom:2px">\u043a\u0433</div></div>`).join('')}
+  </div>`;
+  // sec3 top5
   const top5Sorted=[...stats].sort((a,b)=>b.total-a.total);
-  const top5Rows=top5Sorted.map(s=>{
+  const secTop5=top5Sorted.map(s=>{
     const rank=totalRanks[s.team.id];
-    const fishBars=s.top5.map((w,i)=>`
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-        <div style="font-size:10px;color:var(--text3);width:10px">${i+1}</div>
-        <div style="flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
-          <div style="height:100%;background:${i===0?'linear-gradient(90deg,var(--gold),var(--gold2))':'rgba(201,168,76,.4)'};border-radius:3px;width:${s.bites[0]?Math.round(w/s.bites[0]*100):0}%"></div>
-        </div>
-        <div style="font-size:11px;font-weight:600;color:${i===0?'var(--gold)':'var(--text2)'};width:44px;text-align:right">${w.toFixed(2)}</div>
-      </div>`).join('');
-    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">${medalEmoji(rank)}</span>
-          <span style="font-size:13px;font-weight:600;color:var(--text)">${s.team.name}</span>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold2)">${s.total.toFixed(2)} кг</div>
-          <div style="font-size:10px;color:var(--text3)">топ-${s.top5.length}</div>
-        </div>
-      </div>
-      ${s.top5.length?fishBars:`<div style="font-size:11px;color:var(--text3)">Клювань ще немає</div>`}
-    </div>`;
+    const bars=s.top5.length?s.top5.map((w,i)=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+      <div style="font-size:9px;color:var(--text3);width:9px">${i+1}</div>
+      <div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:${i===0?'linear-gradient(90deg,var(--gold),var(--gold2))':'rgba(201,168,76,.35)'};border-radius:3px;width:${s.bf?Math.round(w/s.bf*100):0}%"></div></div>
+      <div style="font-size:10px;font-weight:600;color:${i===0?'var(--gold)':'var(--text2)'};width:40px;text-align:right">${w.toFixed(2)}</div></div>`).join('')
+    :`<div style="font-size:11px;color:var(--text3)">\u041a\u043b\u044e\u0432\u0430\u043d\u044c \u0449\u0435 \u043d\u0435\u043c\u0430\u0454</div>`;
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;margin-bottom:7px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <div style="display:flex;align-items:center;gap:6px"><span style="${pStyle(rank)}">${medal(rank)}</span><span style="font-size:13px;font-weight:600;color:var(--text)">${s.team.name}</span></div>
+        <div style="text-align:right"><div style="font-family:\'Cormorant Garamond\',serif;font-size:17px;font-weight:600;color:var(--gold2)">${s.total.toFixed(2)} \u043a\u0433</div>
+        <div style="font-size:9px;color:var(--text3)">\u0442\u043e\u043f-${s.top5.length}</div></div></div>${bars}</div>`;
   }).join('');
-
-  // ── Блок 4: Всі клювання (загальна сума) ──
+  // sec4 all
   const allSorted=[...stats].sort((a,b)=>b.totalAll-a.totalAll);
-  const allRows=allSorted.map((s,i)=>{
-    const maxTotal=allSorted[0].totalAll||1;
-    return `<div style="padding:8px 14px;border-bottom:1px solid rgba(48,54,61,.4)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+  const maxAll=allSorted[0]?.totalAll||0.01;
+  const secAll=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:12px">
+    ${allSorted.map(s=>`<div style="padding:8px 12px;border-bottom:1px solid rgba(48,54,61,.4)">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
         <div style="font-size:13px;color:var(--text)">${s.team.name}</div>
-        <div style="display:flex;align-items:baseline;gap:4px">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text)">${s.totalAll.toFixed(2)}</div>
-          <div style="font-size:10px;color:var(--text3)">кг · ${s.count} кл.</div>
+        <div style="display:flex;align-items:baseline;gap:3px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:18px;font-weight:600;color:var(--text)">${s.totalAll.toFixed(2)}</div>
+        <div style="font-size:9px;color:var(--text3)">\u043a\u0433 \u00b7 ${s.count} \u043a\u043b.</div></div></div>
+      <div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden">
+        <div style="height:100%;background:linear-gradient(90deg,#63b0ff,rgba(99,176,255,.5));border-radius:2px;width:${Math.round(s.totalAll/maxAll*100)}%"></div></div></div>`).join('')}
+  </div>`;
+
+  el.innerHTML=`<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:12px;-webkit-overflow-scrolling:touch">
+      <button onclick="statsTab(\'final\')" class="stats-tab-btn active" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid rgba(201,168,76,.4);background:rgba(201,168,76,.15);color:var(--gold);cursor:pointer;font-family:Inter,sans-serif;flex-shrink:0">\U0001f3c6 \u0417\u0430\u043b\u0456\u043a</button>
+      <button onclick="statsTab(\'bf\')" class="stats-tab-btn" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:Inter,sans-serif;flex-shrink:0">\U0001f41f Big Fish</button>
+      <button onclick="statsTab(\'top5\')" class="stats-tab-btn" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:Inter,sans-serif;flex-shrink:0">\U0001f4cf \u0422\u043e\u043f-5</button>
+      <button onclick="statsTab(\'all\')" class="stats-tab-btn" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:Inter,sans-serif;flex-shrink:0">\u2696\ufe0f \u0417\u0430\u0433\u0430\u043b\u044c\u043d\u0430</button>
+    </div>
+    <div id="stats-sec-final">${secFinal}</div>
+    <div id="stats-sec-bf" style="display:none">${secBF}</div>
+    <div id="stats-sec-top5" style="display:none">${secTop5}</div>
+    <div id="stats-sec-all" style="display:none">${secAll}</div>`;
+}
+
+function statsTab(id){
+  ['final','bf','top5','all'].forEach(s=>{const sec=document.getElementById('stats-sec-'+s);if(sec)sec.style.display=s===id?'':'none';});
+  document.querySelectorAll('.stats-tab-btn').forEach((btn,i)=>{
+    const isActive=['final','bf','top5','all'][i]===id;
+    btn.style.background=isActive?'rgba(201,168,76,.15)':'transparent';
+    btn.style.borderColor=isActive?'rgba(201,168,76,.4)':'var(--border)';
+    btn.style.color=isActive?'var(--gold)':'var(--text3)';
+  });
+  const sc=document.getElementById('coop-stats-content');
+  if(sc)sc.scrollTop=0;
+}
+
+// ============================================================
+// ===== GUEST SESSION ACCESS =====
+// ============================================================
+let guestSess=null;       // сесія до якої приєдналися як гість
+let guestRole=null;       // 'editor' або 'viewer'
+let guestBites=[];        // клювання гостьової сесії
+let guestTimerInt=null;
+let guestRealtimeSub=null;
+
+function genShareCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+
+// ── Відкрити вікно поділитись сесією (тільки для власника) ──
+async function openShareSession(){
+  if(!activeSess)return;
+  const isOwner=activeSess.user_id===user.id;
+  if(!isOwner){toast('Тільки власник може керувати доступом');return;}
+
+  // генеруємо коди якщо їх ще немає
+  let sess=activeSess;
+  const updates={};
+  if(!sess.share_code_editor) updates.share_code_editor=genShareCode();
+  if(!sess.share_code_viewer) updates.share_code_viewer=genShareCode();
+  if(Object.keys(updates).length){
+    const {data}=await sb.from('sessions').update(updates).eq('id',sess.id).select().single();
+    if(data){Object.assign(activeSess,data);sess=activeSess;}
+  }
+
+  document.getElementById('share-editor-code').textContent=sess.share_code_editor||'——————';
+  document.getElementById('share-viewer-code').textContent=sess.share_code_viewer||'——————';
+
+  // завантажуємо список гостей
+  const {data:guests}=await sb.from('session_guests')
+    .select('*,profiles(nickname)')
+    .eq('session_id',sess.id);
+  const guestList=guests||[];
+  const gBlock=document.getElementById('share-guests-block');
+  const gList=document.getElementById('share-guests-list');
+  if(guestList.length){
+    gBlock.style.display='';
+    gList.innerHTML=guestList.map(g=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(48,54,61,.4)">
+        <div>
+          <div style="font-size:13px;color:var(--text);font-weight:500">${g.profiles?.nickname||g.user_id.slice(0,8)}</div>
+          <div style="font-size:10px;color:var(--text3)">${g.role==='editor'?'Співрибак':'Спостерігач'}</div>
         </div>
-      </div>
-      <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">
-        <div style="height:100%;background:linear-gradient(90deg,#63b0ff,rgba(99,176,255,.5));border-radius:3px;width:${maxTotal?Math.round(s.totalAll/maxTotal*100):0}%"></div>
-      </div>
-    </div>`;
-  }).join('');
+        <button onclick="removeGuest('${g.id}')" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px 8px">×</button>
+      </div>`).join('');
+  } else {
+    gBlock.style.display='none';
+  }
+  openModal('share-session-modal');
+}
 
-  el.innerHTML=`
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.5px">Оновлюється в реальному часі</div>
+function copyShareCode(type){
+  const code=type==='editor'
+    ?document.getElementById('share-editor-code').textContent
+    :document.getElementById('share-viewer-code').textContent;
+  if(code.includes('—'))return;
+  navigator.clipboard?.writeText(code).then(()=>toast('✓ Код скопійовано'));
+}
 
-    <!-- Фінальна таблиця -->
-    <div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:10px">🏆 Загальний залік</div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
-        <div style="padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px">
-          <div style="font-size:10px;color:var(--text3);flex:1">Менша сума балів = вище місце</div>
-          <div style="font-size:10px;color:var(--text3)">місце БФ + місце суми</div>
-        </div>
-        ${finalTableRows}
+async function removeGuest(guestId){
+  await sb.from('session_guests').delete().eq('id',guestId);
+  openShareSession(); // refresh
+  toast('✓ Доступ відкликано');
+}
+
+// ── Відкрити вікно приєднання до сесії ──
+function openJoinSession(){
+  if(activeSess&&activeSess.user_id===user.id){
+    toast('Ви вже в активній сесії. Завершіть її або відкрийте доступ через ⚙');return;
+  }
+  document.getElementById('js-code').value='';
+  document.getElementById('js-info').style.display='none';
+  document.getElementById('js-err').textContent='';
+  const btn=document.getElementById('js-btn');
+  btn.textContent='Знайти сесію';
+  btn.onclick=searchGuestSession;
+  openModal('join-session-modal');
+}
+
+async function searchGuestSession(){
+  const code=document.getElementById('js-code').value.trim().toUpperCase();
+  const err=document.getElementById('js-err');
+  err.textContent='';
+  if(code.length<4){err.textContent='Введіть код доступу';return;}
+  const btn=document.getElementById('js-btn');
+  btn.disabled=true;btn.textContent='Пошук...';
+
+  // шукаємо спочатку за editor кодом, потім за viewer
+  let found=null;
+  let role=null;
+  const {data:asEditor}=await sb.from('sessions')
+    .select('*').eq('is_active',true).eq('share_code_editor',code).maybeSingle();
+  if(asEditor){found=asEditor;role='editor';}
+  if(!found){
+    const {data:asViewer}=await sb.from('sessions')
+      .select('*').eq('is_active',true).eq('share_code_viewer',code).maybeSingle();
+    if(asViewer){found=asViewer;role='viewer';}
+  }
+
+  btn.disabled=false;
+  if(!found){err.textContent='Сесію не знайдено або вона вже завершена';btn.textContent='Знайти сесію';return;}
+
+  const roleLabel=role==='editor'?'👥 Співрибак — повний доступ':'👁 Спостерігач — тільки перегляд';
+  document.getElementById('js-info').style.display='';
+  document.getElementById('js-role-label').textContent=roleLabel;
+  document.getElementById('js-info-lake').textContent=found.lake_name+' · Сектор '+(found.sector||'—');
+  document.getElementById('js-info-dates').textContent=fmtDate(found.started_at)+' — '+fmtDate(found.ends_at);
+
+  btn.textContent='Приєднатись →';
+  btn.onclick=()=>joinGuestSession(found,role);
+}
+
+async function joinGuestSession(sess,role){
+  const btn=document.getElementById('js-btn');
+  btn.disabled=true;btn.textContent='Приєднання...';
+
+  // перевірка чи вже є запис
+  const {data:existing}=await sb.from('session_guests')
+    .select('id')
+    .eq('session_id',sess.id)
+    .eq('user_id',user.id)
+    .single();
+
+  if(!existing){
+    await sb.from('session_guests').insert({
+      session_id:sess.id,
+      user_id:user.id,
+      role
+    });
+  } else {
+    // оновити роль якщо змінилась
+    await sb.from('session_guests').update({role}).eq('id',existing.id);
+  }
+
+  btn.disabled=false;
+  closeModal('join-session-modal');
+  guestSess=sess;
+  guestRole=role;
+  await loadGuestBites();
+  subscribeGuestRealtime();
+  renderGuestSession();
+  // показуємо вкладку
+  document.getElementById('nav-session').style.display='';
+  goPage('session');
+  toast(role==='editor'?'✓ Приєднались як співрибак!':'✓ Приєднались як спостерігач');
+}
+
+// ── Завантаження клювань гостьової сесії ──
+async function loadGuestBites(){
+  if(!guestSess)return;
+  const {data}=await sb.from('bites')
+    .select('*')
+    .eq('session_id',guestSess.id)
+    .is('coop_session_id',null)
+    .order('bitten_at',{ascending:true});
+  guestBites=data||[];
+}
+
+// ── Realtime для гостьової сесії ──
+function subscribeGuestRealtime(){
+  if(guestRealtimeSub)sb.removeChannel(guestRealtimeSub);
+  if(!guestSess)return;
+  guestRealtimeSub=sb.channel('guest-bites-'+guestSess.id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'bites',filter:`session_id=eq.${guestSess.id}`},payload=>{
+      if(!guestBites.find(b=>b.id===payload.new.id))guestBites.push(payload.new);
+      if(document.getElementById('page-session')?.classList.contains('active'))renderGuestSession();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'bites',filter:`session_id=eq.${guestSess.id}`},async()=>{
+      await loadGuestBites();
+      if(document.getElementById('page-session')?.classList.contains('active'))renderGuestSession();
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'bites',filter:`session_id=eq.${guestSess.id}`},async()=>{
+      await loadGuestBites();
+      if(document.getElementById('page-session')?.classList.contains('active'))renderGuestSession();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessions',filter:`id=eq.${guestSess.id}`},payload=>{
+      if(!payload.new.is_active){
+        leaveGuestSession(true);
+        toast('Сесію завершено господарем');
+        return;
+      }
+      // оновлення spots_data і feedings_data від власника або іншого гостя
+      const p=payload.new;
+      if(p?.spots_data){
+        const d=_parseSessData(p.spots_data);
+        sessSpots=d.spots;sessPegDist=d.pegDist;sessShowRod=d.showRod;sessOpts=d.opts;
+        localStorage.setItem('sess_spots_'+guestSess.id,JSON.stringify(p.spots_data));
+        if(document.getElementById('sess-spots-modal')?.classList.contains('open'))renderSessSpots();
+        const isOnSession=document.getElementById('page-session')?.classList.contains('active');
+        if(isOnSession)renderGuestSession();
+      }
+      if(p?.feedings_data){
+        localStorage.setItem('feedings_'+guestSess.id,JSON.stringify(p.feedings_data));
+        if(document.getElementById('feeding-modal')?.classList.contains('open'))renderFeedingList();
+      }
+    })
+    .subscribe();
+}
+
+// ── Render гостьової сесії ──
+function renderGuestSession(){
+  if(!guestSess)return;
+  const totalW=guestBites.reduce((s,b)=>s+(b.weight||0),0);
+  const maxB=guestBites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
+  const isEditor=guestRole==='editor';
+
+  // таймер
+  const now=new Date();
+  const ends=new Date(guestSess.ends_at);
+  const starts=new Date(guestSess.started_at);
+  const left=ends-now;
+  let timerStr='--:--:--';
+  if(left>0){const h=Math.floor(left/3600000);const m=Math.floor((left%3600000)/60000);timerStr=`${h} год. ${String(m).padStart(2,'0')} хв.`;}
+  else timerStr='Час вийшов';
+
+  // бейдж ролі
+  const roleBadge=isEditor
+    ?`<span style="font-size:10px;background:rgba(46,160,67,.12);color:var(--green);border:1px solid rgba(46,160,67,.3);border-radius:5px;padding:2px 7px;margin-left:6px">👥 Співрибак</span>`
+    :`<span style="font-size:10px;background:rgba(99,176,255,.12);color:#63b0ff;border:1px solid rgba(99,176,255,.3);border-radius:5px;padding:2px 7px;margin-left:6px">👁 Спостерігач</span>`;
+
+  // клювання
+  let bitesHtml='';
+  if(!guestBites.length){
+    bitesHtml=`<div class="empty-state" style="padding:30px 0"><div class="empty-icon" style="font-size:32px">🐟</div><div class="empty-title" style="font-size:16px">Клювань ще немає</div>${isEditor?'<div class="empty-sub">Натисни "+ Клювання"</div>':''}</div>`;
+  } else {
+    // тимчасово підставляємо guestSess як activeSess для biteCardHTML
+    const savedSess=activeSess;
+    activeSess=guestSess;
+    const savedBites=bites;
+    bites=guestBites;
+    const sortedGuest=[...guestBites].sort((a,b)=>new Date(a.bitten_at)-new Date(b.bitten_at));
+    sortedGuest.forEach((b,i)=>{
+      bitesHtml+=biteCardHTML(b,guestSess.started_at,isEditor,guestBites.length-i);
+    });
+    activeSess=savedSess;
+    bites=savedBites;
+  }
+
+  const pct=left>0?Math.round((1-(left/(ends-starts)))*100):100;
+
+  document.getElementById('session-content').innerHTML=`
+    <div class="timer-block" style="position:relative">
+      <div style="position:absolute;top:10px;right:12px;display:flex;gap:6px;z-index:2">
+        ${isEditor?`
+          <button onclick="openGuestFeeding()" style="background:rgba(139,90,43,.18);border:1px solid rgba(139,90,43,.4);border-radius:7px;padding:4px 7px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;width:32px;height:32px" title="Годування"><svg width="20" height="26" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/><path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/><path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/><line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/><circle cx="10" cy="0.5" r="1" fill="#333"/><ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/></svg></button>
+          <button onclick="openGuestSpots()" style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 9px;color:var(--gold);font-size:14px;cursor:pointer;line-height:1">⚙</button>
+        `:''}
       </div>
+      <div class="timer-lake">${guestSess.lake_name}${roleBadge}</div>
+      <div class="timer-sector">Сектор ${guestSess.sector||'—'} · ${guestSess.rods} вуд. · ${guestSess.rig||''}</div>
+      <div class="timer-digits" style="${left<=0?'color:var(--orange)':''}">${timerStr}</div>
+      <div class="timer-label">Залишилось</div>
+      <div class="timer-progress"><div class="timer-progress-fill" style="width:${pct}%"></div></div>
     </div>
-
-    <!-- Big Fish -->
-    <div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:10px">🐟 Big Fish</div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
-        ${bfRows}
-      </div>
+    <div class="bites-summary">
+      <div class="summary-card"><div class="summary-num">${guestBites.length}</div><div class="summary-lbl">Клювань</div></div>
+      <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
+      <div class="summary-card"><div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div><div class="summary-lbl">Big fish кг</div></div>
     </div>
-
-    <!-- Топ-5 -->
-    <div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:10px">📏 Топ-${TOP_N} риб (сума)</div>
-      ${top5Rows}
-    </div>
-
-    <!-- Всього -->
-    <div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:10px">⚖️ Загальна вага всіх клювань</div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
-        ${allRows}
-      </div>
-    </div>
+    <div class="section-label">Клювання <span>${guestBites.length}</span></div>
+    <div id="bites-list">${bitesHtml}</div>
+    <div style="height:10px"></div>
+    <button onclick="leaveGuestSession(false)" style="width:100%;background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:11px;color:var(--text3);font-family:Inter,sans-serif;font-size:13px;cursor:pointer;margin-top:4px">
+      Покинути сесію
+    </button>
   `;
+
+  // FAB
+  const fab=document.getElementById('fab');
+  const lbl=document.getElementById('fab-label');
+  if(isEditor){fab.classList.remove('hidden');lbl.textContent='Клювання';}
+  else{fab.classList.add('hidden');}
+
+  // запускаємо таймер оновлення
+  if(guestTimerInt)clearInterval(guestTimerInt);
+  guestTimerInt=setInterval(()=>{
+    const el=document.querySelector('.timer-digits');
+    if(!el)return;
+    const n=new Date(),e=new Date(guestSess.ends_at),l=e-n;
+    if(l>0){const h=Math.floor(l/3600000);const m=Math.floor((l%3600000)/60000);el.textContent=`${h} год. ${String(m).padStart(2,'0')} хв.`;}
+    else{el.textContent='Час вийшов';el.style.color='var(--orange)';}
+  },60000);
+}
+
+// ── Годування і точки лову для гостя-редактора ──
+function openGuestBite(){
+  editBiteId=null;
+  document.getElementById('nb-weight').value='';
+  document.getElementById('nb-dist').value='';
+  document.getElementById('nb-notes').value='';
+  document.getElementById('nb-time').value=toLocalDT();
+  const mt=document.querySelector('#new-bite-modal .modal-title');
+  if(mt)mt.textContent='Нова клювання';
+  const nb=document.getElementById('nb-btn');
+  if(nb){nb.textContent='Зберегти клювання';nb.dataset.guestMode='1';}
+  buildFishChips();
+  const c=document.getElementById('nb-rod-chips');
+  c.innerHTML='';
+  for(let i=1;i<=(guestSess.rods||2);i++){
+    const b=document.createElement('button');
+    b.className='rod-chip'+(i===1?' active':'');
+    b.textContent=i;b.dataset.rodNum=i;
+    b.onclick=()=>{document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
+    c.appendChild(b);
+  }
+  curBaitType='popup';
+  document.querySelectorAll('#nb-bait-type .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  buildFlavorChips();buildColorChips();
+  document.getElementById('nb-size-block').style.display='none';
+  document.getElementById('nb-size-boil-block').style.display='none';
+  document.getElementById('nb-color-block').style.display='';
+  const savedSpots=loadSessSpotsByKey('sess_spots_'+guestSess.id);
+  sessSpots=savedSpots.spots;sessPegDist=savedSpots.pegDist;sessOpts=savedSpots.opts;
+  buildSpotsChips();
+  openModal('new-bite-modal');
+}
+
+function openGuestFeeding(){
+  // підставляємо guestSess тимчасово
+  const saved=activeSess;activeSess=guestSess;
+  openFeeding();
+  activeSess=saved;
+}
+
+async function openGuestSpots(){
+  _guestSpotsMode=true;
+  await loadSessSpots();
+  renderSessSpots();
+  document.getElementById('sess-spots-modal').classList.add('open');
+}
+
+function loadSessSpotsByKey(key){
+  try{
+    const raw=localStorage.getItem(key);
+    if(raw){const p=JSON.parse(raw);return{spots:p.spots||[],pegDist:p.pegDist||5,showRod:p.showRod||false,opts:Object.assign({rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true},p.opts||{})};}
+  }catch{}
+  return{spots:[],pegDist:5,showRod:false,opts:{rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true}};
+}
+
+// ── Покинути гостьову сесію ──
+async function leaveGuestSession(silent=false){
+  if(!silent&&!confirm('Покинути сесію?'))return;
+  if(guestRealtimeSub){sb.removeChannel(guestRealtimeSub);guestRealtimeSub=null;}
+  if(guestTimerInt){clearInterval(guestTimerInt);guestTimerInt=null;}
+  guestSess=null;guestRole=null;guestBites=[];
+  // відновлюємо нормальний стан
+  await loadSessions();
+  renderHome();
+  goPage('home');
+  document.getElementById('nav-session').style.display=activeSess?'':'none';
+  if(!silent)toast('✓ Ви покинули сесію');
+}
+
+// ── Завантаження гостьових сесій при логіні ──
+async function loadGuestState(){
+  try{
+    const {data:guest,error:gErr}=await sb.from('session_guests')
+      .select('*')
+      .eq('user_id',user.id)
+      .maybeSingle();
+    if(gErr||!guest)return;
+    // читаємо сесію — RLS дозволяє через get_guest_session_ids
+    const {data:sess,error:sErr}=await sb.from('sessions')
+      .select('*')
+      .eq('id',guest.session_id)
+      .maybeSingle();
+    if(sErr||!sess||!sess.is_active)return;
+    guestSess=sess;
+    guestRole=guest.role;
+    // підвантажуємо збережені точки і годування з БД в localStorage
+    if(sess.spots_data)localStorage.setItem('sess_spots_'+sess.id,JSON.stringify(sess.spots_data));
+    if(sess.feedings_data)localStorage.setItem('feedings_'+sess.id,JSON.stringify(sess.feedings_data));
+    await loadGuestBites();
+    subscribeGuestRealtime();
+    document.getElementById('nav-session').style.display='';
+  }catch(e){console.log('loadGuestState err',e);}
 }
 
 init();
