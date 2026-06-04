@@ -355,6 +355,69 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 .color-chip{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:.15s;background:transparent;font-family:'Inter',sans-serif;font-size:12px;color:var(--text2)}
 .color-chip.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08)}
 .color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+
+/* ===== COOP SESSION ===== */
+.coop-btn{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(99,176,255,.1);border:1px solid rgba(99,176,255,.3);
+  border-radius:var(--r2);padding:6px 12px;
+  color:#63b0ff;font-size:12px;font-weight:600;
+  cursor:pointer;transition:.2s;font-family:'Inter',sans-serif;letter-spacing:.2px;
+}
+.coop-btn:active{background:rgba(99,176,255,.2)}
+.coop-choice-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r3);padding:20px;cursor:pointer;
+  transition:.15s;text-align:center;
+}
+.coop-choice-card:active{transform:scale(.97);border-color:var(--gold)}
+.coop-choice-icon{font-size:32px;margin-bottom:10px}
+.coop-choice-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.coop-choice-sub{font-size:12px;color:var(--text3);line-height:1.5}
+.coop-code-box{
+  background:var(--bg3);border:2px solid var(--gold);
+  border-radius:var(--r);padding:16px;text-align:center;margin:14px 0;
+}
+.coop-code{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:var(--gold2);letter-spacing:8px;line-height:1}
+.coop-code-hint{font-size:11px;color:var(--text3);margin-top:6px;letter-spacing:.5px}
+.coop-tab-bar{display:flex;gap:0;overflow-x:auto;border-bottom:1px solid var(--border);margin-bottom:14px;flex-shrink:0;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.coop-tab-bar::-webkit-scrollbar{height:0}
+.coop-tab{
+  padding:9px 14px;border:none;background:transparent;
+  color:var(--text3);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
+  transition:.15s;flex-shrink:0;
+}
+.coop-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.coop-tab .coop-tab-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:4px;vertical-align:middle}
+.team-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.15s;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.team-card:active{border-color:var(--gold)}
+.team-card.selected{border-color:var(--gold);background:rgba(201,168,76,.07)}
+.team-card-name{font-size:14px;font-weight:600;color:var(--text)}
+.team-card-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.team-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px}
+.team-badge-captain{background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.team-badge-member{background:rgba(139,148,158,.12);color:var(--text2);border:1px solid var(--border)}
+.coop-readonly-banner{
+  background:rgba(99,176,255,.08);border:1px solid rgba(99,176,255,.2);
+  border-radius:var(--r2);padding:8px 12px;margin-bottom:12px;
+  font-size:12px;color:#63b0ff;display:flex;align-items:center;gap:6px;
+}
+.coop-session-header{
+  background:linear-gradient(135deg,rgba(26,39,68,.8) 0%,rgba(13,27,42,.8) 100%);
+  border:1px solid rgba(99,176,255,.2);border-radius:var(--r3);
+  padding:14px 16px;margin-bottom:14px;
+}
+.coop-session-title{font-size:11px;color:#63b0ff;letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.coop-session-lake{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2)}
+.coop-session-meta{font-size:12px;color:var(--text2);margin-top:4px}
+/* pulse dot for live updates */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:4px;animation:pulse 2s ease-in-out infinite;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -376,6 +439,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
       <div class="field" id="nick-field" style="display:none"><label>Нікнейм</label><input type="text" id="a-nick" placeholder="Як тебе звати?"></div>
       <button class="btn-gold" id="a-btn" onclick="doAuth()">Увійти</button>
       <div class="auth-err" id="a-err"></div>
+      <button class="auth-link-btn" id="forgot-btn" onclick="doForgotPassword()" style="margin-top:6px">Забули пароль?</button>
     </div>
 
   </div>
@@ -390,6 +454,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
         <div id="header-nick" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);font-weight:400;letter-spacing:0;min-height:16px"></div>
       </div>
       <div class="header-right">
+        <button class="coop-btn" id="coop-header-btn" onclick="openCoopEntry()" style="display:none">🤝 Спільна</button>
         <button class="icon-btn" onclick="openModal('settings-modal')">⚙</button>
         <button class="icon-btn" onclick="doLogout()">Вийти</button>
       </div>
@@ -676,6 +741,254 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
   </div>
 </div>
 
+<!-- ===== COOP: ENTRY CHOICE ===== -->
+<div class="modal-overlay" id="coop-entry-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">🤝 Спільна сесія</div></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
+        <div class="coop-choice-card" onclick="openCoopCreate()">
+          <div class="coop-choice-icon">🎯</div>
+          <div class="coop-choice-title">Створити</div>
+          <div class="coop-choice-sub">Ти організатор — генеруєш код для інших</div>
+        </div>
+        <div class="coop-choice-card" onclick="openCoopJoin()">
+          <div class="coop-choice-icon">🔗</div>
+          <div class="coop-choice-title">Приєднатися</div>
+          <div class="coop-choice-sub">Маєш код від організатора</div>
+        </div>
+      </div>
+      <div id="coop-active-banner" style="display:none;background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.3);border-radius:var(--r);padding:10px 14px;margin-top:8px">
+        <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px"><span class="live-dot"></span>Активна спільна сесія</div>
+        <div id="coop-active-desc" style="font-size:13px;color:var(--text)"></div>
+        <button onclick="goToCoopSession()" style="margin-top:8px;width:100%;background:rgba(46,160,67,.15);border:1px solid rgba(46,160,67,.4);border-radius:var(--r2);padding:9px;color:var(--green);font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Відкрити сесію</button>
+        <button onclick="leaveCoopSession()" style="margin-top:6px;width:100%;background:transparent;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:Inter,sans-serif;padding:4px">Покинути / Завершити</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeModal('coop-entry-modal')">Закрити</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COOP: CREATE SESSION ===== -->
+<div class="modal-overlay" id="coop-create-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">🎯 Нова спільна сесія</div></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Водойма</label>
+        <select id="ccs-lake"></select>
+      </div>
+      <div class="field">
+        <label>Тривалість сесії</label>
+        <div class="seg" id="ccs-dur">
+          <button class="seg-btn active" onclick="selSeg('ccs-dur',this);coopUpdateEnd()">Денна</button>
+          <button class="seg-btn" onclick="selSeg('ccs-dur',this);coopUpdateEnd()">Доба</button>
+          <button class="seg-btn" onclick="selSeg('ccs-dur',this);coopUpdateEnd()">Дві доби</button>
+        </div>
+      </div>
+      <div class="field"><label>Дата та час початку</label><input type="datetime-local" id="ccs-start" oninput="coopUpdateEnd()"></div>
+      <div class="field"><label>Дата та час закінчення</label><input type="datetime-local" id="ccs-end"></div>
+      <div style="background:rgba(99,176,255,.08);border:1px solid rgba(99,176,255,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.7">
+        ℹ Після створення отримаєш код — поділись ним з учасниками. Потім потрібно буде налаштувати свою команду.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="ccs-btn" onclick="saveCoopSession()">Створити та отримати код</button>
+      <button class="cancel-btn" onclick="closeModal('coop-create-modal')">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COOP: SHOW CODE ===== -->
+<div class="modal-overlay" id="coop-code-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">Код сесії</div></div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--text2)">Поділись цим кодом з учасниками</div>
+      <div class="coop-code-box">
+        <div class="coop-code" id="coop-code-display"></div>
+        <div class="coop-code-hint">НАТИСНИ ЩОБ СКОПІЮВАТИ</div>
+      </div>
+      <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:14px">Код діє впродовж усієї сесії</div>
+      <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text2)">
+        Наступний крок: налаштуй <strong style="color:var(--gold)">свою команду</strong> — назва, сектор, кормова програма тощо.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" onclick="openCoopTeamSetup(true)">Налаштувати мою команду →</button>
+      <button class="cancel-btn" onclick="closeModal('coop-code-modal')">Пізніше</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COOP: JOIN SESSION ===== -->
+<div class="modal-overlay" id="coop-join-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title">🔗 Приєднатися до сесії</div></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Код сесії</label>
+        <input type="text" id="cj-code" placeholder="НАПР. FISH42" autocomplete="off" maxlength="8"
+          style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:600;text-align:center"
+          oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+      </div>
+      <div id="cj-info" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Знайдена сесія</div>
+        <div id="cj-info-lake" style="font-size:15px;font-weight:600;color:var(--text)"></div>
+        <div id="cj-info-dates" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
+      </div>
+      <div id="cj-err" style="color:var(--red);font-size:12px;text-align:center;min-height:16px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="cj-btn" onclick="searchCoopSession()">Знайти сесію</button>
+      <button class="cancel-btn" onclick="closeModal('coop-join-modal')">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COOP: TEAM SETUP ===== -->
+<div class="modal-overlay" id="coop-team-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title" id="coop-team-modal-title">Моя команда</div></div>
+    <div class="modal-body">
+      <!-- Existing teams list -->
+      <div id="coop-existing-teams-block">
+        <div class="settings-title" style="margin-bottom:8px">Існуючі команди</div>
+        <div id="coop-existing-teams"></div>
+      </div>
+      <div class="divider"></div>
+      <!-- Create new team -->
+      <div class="settings-title" style="margin-bottom:8px">Або створити нову команду</div>
+      <div class="field">
+        <label>Назва команди</label>
+        <input type="text" id="ct-name" placeholder="Напр. Команда Захід">
+      </div>
+      <!-- Captain checkbox -->
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:12px">
+        <div onclick="toggleCaptain()" id="ct-captain-toggle" style="width:44px;height:24px;background:rgba(201,168,76,.3);border-radius:12px;position:relative;cursor:pointer;transition:.2s;flex-shrink:0">
+          <div id="ct-captain-knob" style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s"></div>
+        </div>
+        <div>
+          <div style="font-size:13px;color:var(--text);font-weight:500">Я капітан команди</div>
+          <div style="font-size:11px;color:var(--text3)">Капітан може редагувати налаштування команди</div>
+        </div>
+      </div>
+      <!-- Team session settings (shown when creating) -->
+      <div id="ct-settings-block">
+        <div class="settings-title" style="margin-bottom:10px">Налаштування підсесії</div>
+        <div class="field"><label>Сектор / місце</label><input type="text" id="ct-sector" placeholder="Напр. 7, А3, Правий берег..."></div>
+        <div class="field">
+          <label>Кількість вудилищ</label>
+          <div class="rod-chips" id="ct-rods">
+            <button class="rod-chip" onclick="selCtRod(1)">1</button>
+            <button class="rod-chip active" onclick="selCtRod(2)">2</button>
+            <button class="rod-chip" onclick="selCtRod(3)">3</button>
+            <button class="rod-chip" onclick="selCtRod(4)">4</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Метод ловлі</label>
+          <div class="seg" id="ct-rig">
+            <button class="seg-btn active" onclick="selSeg('ct-rig',this)">Метод флет</button>
+            <button class="seg-btn" onclick="selSeg('ct-rig',this)">Класика</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Кормова програма</label>
+          <input type="text" id="ct-bait" placeholder="Напр. Krill + Tiger Nut mix...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="ct-btn" onclick="saveCoopTeam()">Зберегти та увійти</button>
+      <button class="cancel-btn" onclick="closeModal('coop-team-modal')">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COOP: SESSION VIEW ===== -->
+<div class="modal-overlay" id="coop-session-modal" style="display:none;z-index:150">
+  <div style="height:100%;width:100%;max-width:430px;margin:0 auto;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;position:relative">
+    <!-- Header -->
+    <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <button onclick="closeCoopSession()" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:Inter,sans-serif;padding:4px">← Назад</button>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">🤝 Спільна сесія</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button onclick="openCoopStats()" style="background:rgba(155,196,160,.12);border:1px solid rgba(155,196,160,.3);border-radius:var(--r2);padding:4px 9px;color:#9bc4a0;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📊</button>
+          <button id="coop-end-all-btn" onclick="endCoopSessionAll()" style="display:none;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:var(--r2);padding:4px 10px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Завершити все</button>
+          <div id="coop-end-all-placeholder" style="width:10px"></div>
+        </div>
+      </div>
+      <!-- Session info strip -->
+      <div class="coop-session-header" style="margin-top:10px;margin-bottom:0;padding:10px 14px;position:relative">
+        <div style="position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center">
+          <button id="coop-add-team-btn" onclick="openCoopAddTeam()" style="display:none;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:var(--r2);padding:4px 9px;color:var(--gold);font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">+ Команда</button>
+          <button id="coop-org-settings-btn" onclick="openCoopOrgSettings()" style="display:none;background:rgba(99,176,255,.1);border:1px solid rgba(99,176,255,.3);border-radius:var(--r2);padding:4px 8px;color:#63b0ff;font-size:13px;cursor:pointer;line-height:1">⚙</button>
+        </div>
+        <div class="coop-session-title"><span class="live-dot"></span>АКТИВНА СЕСІЯ · <span style="font-size:10px;color:var(--text3);letter-spacing:0;text-transform:none;font-weight:400" id="coop-view-code-small"></span></div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-right:80px">
+          <div class="coop-session-lake" id="coop-view-lake"></div>
+          <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.5px;white-space:nowrap" id="coop-header-timer">--:--</div>
+        </div>
+        <div class="coop-session-meta" id="coop-view-dates"></div>
+      </div>
+    </div>
+    <!-- Tabs bar -->
+    <div class="coop-tab-bar" id="coop-tabs-bar"></div>
+    <!-- Content area -->
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 80px" id="coop-tab-content"></div>
+    <!-- FAB for own team only -->
+    <button class="fab" id="coop-fab" onclick="openCoopBite()" style="display:none">＋ Клювання</button>
+  </div>
+</div>
+
+<!-- ===== COOP STATS SCREEN ===== -->
+<div id="coop-stats-screen" style="display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column">
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+    <button onclick="closeCoopStats()" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:Inter,sans-serif;padding:4px">← Назад</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold2)">📊 Статистика</div>
+    <div style="width:48px"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 40px" id="coop-stats-content">
+    <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Завантаження...</div></div>
+  </div>
+</div>
+
+<!-- ===== PASSWORD RECOVERY MODAL ===== -->
+<div class="modal-overlay" id="password-recovery-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">🔑 Новий пароль</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--green);line-height:1.5">
+        ✓ Посилання підтверджено. Введіть новий пароль для вашого акаунту.
+      </div>
+      <div class="field">
+        <label>Новий пароль</label>
+        <input type="password" id="pr-pass" placeholder="Мінімум 6 символів" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Повторіть пароль</label>
+        <input type="password" id="pr-pass2" placeholder="Введіть ще раз" autocomplete="new-password">
+      </div>
+      <div id="pr-err" style="color:var(--red);font-size:12px;text-align:center;min-height:16px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-gold" id="pr-btn" onclick="saveNewPassword()">Зберегти пароль</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -738,6 +1051,7 @@ function switchAuthTab(tab){
   document.getElementById('tab-login').classList.toggle('active',tab==='login');
   document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
   document.getElementById('nick-field').style.display=tab==='signup'?'':'none';
+  document.getElementById('forgot-btn').style.display=tab==='signup'?'none':'';
   document.getElementById('a-btn').textContent=tab==='login'?'Увійти':'Зареєструватись';
   document.getElementById('a-pass').autocomplete=tab==='login'?'current-password':'new-password';
   document.getElementById('a-err').textContent='';
@@ -811,6 +1125,9 @@ async function init(){
       appStarted=false;
       user=null;
     }
+    if(event==='PASSWORD_RECOVERY'){
+      openPasswordRecoveryModal();
+    }
   });
 }
 
@@ -820,6 +1137,7 @@ async function onLogin(u){
   user=u;
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='flex';
+  document.getElementById('coop-header-btn').style.display='';
   // показуємо одразу щоб не було вічної загрузки
   document.getElementById('home-content').innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Завантаження...</div></div>`;
   try{
@@ -830,6 +1148,7 @@ async function onLogin(u){
   }catch(e){}
   try{await loadSettings();}catch(e){console.log('settings err',e)}
   try{await loadSessions();}catch(e){console.log('sessions err',e)}
+  try{await loadCoopState();}catch(e){console.log('coop err',e)}
   renderHome();
 }
 
@@ -1577,6 +1896,9 @@ function selBaitType(btn,type){
 }
 
 async function saveBite(){
+  // delegate to coop mode if needed
+  const btn=document.getElementById('nb-btn');
+  if(btn?.dataset.coopMode==='1'){await saveCoopBiteImpl();return;}
   const fishEl=document.querySelector('#nb-fish .chip.active');
   const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
   const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
@@ -1605,7 +1927,6 @@ async function saveBite(){
   const timeVal=document.getElementById('nb-time').value;
   const notes=document.getElementById('nb-notes').value.trim();
   const baitTypeLabel={'popup':'Поп-ап','balance':'Баланс','boil':'Бойл'}[curBaitType];
-  const btn=document.getElementById('nb-btn');
   btn.disabled=true;btn.textContent='Збереження...';
   const bitePayload={
     fish_type:fish,weight,distance_m:dist,rod_number:rod,
@@ -1659,6 +1980,10 @@ function loadSessSpots(){
   }catch{sessSpots=[];sessPegDist=5;sessShowRod=false;sessOpts={rod:false,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true};}
 }
 function saveSessSpots(){
+  if(_coopSpotsMode&&coopMyTeam){
+    localStorage.setItem('coop_spots_'+coopMyTeam.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist,opts:sessOpts}));
+    return;
+  }
   if(!activeSess)return;
   localStorage.setItem('sess_spots_'+activeSess.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist,showRod:sessShowRod,opts:sessOpts}));
 }
@@ -1860,13 +2185,6 @@ function dropRodToUnassigned(e){
   document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
   _doDropToUnassigned();
 }
-function setSpotDist(si,v){
-  const val=parseFloat(v)||null;
-  sessSpots[si].dist=val;
-  saveSessSpots();
-  renderSessSpots();
-}
-
 function addSpot(){
   const n=sessSpots.length+1;
   sessSpots.push({id:Date.now(),name:`Точка ${n}`,dist:null,active:true,rods:[]});
@@ -1892,6 +2210,7 @@ function closeSessSpots(){
     return;
   }
   saveSessSpots();
+  _coopSpotsMode=false;
   document.getElementById('sess-spots-modal').classList.remove('open');
   buildSpotsChips();
 }
@@ -2739,6 +3058,1685 @@ function closeModal(id){
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')});
 });
+
+// ============================================================
+// ===== COOPERATIVE SESSION =====
+// ============================================================
+let coopSess=null;      // active co_session record
+let coopMyTeam=null;    // my co_team record
+let coopMyMember=null;  // my co_members record
+let coopAllTeams=[];    // all teams in the session
+let coopTabActive=null; // currently viewed team_id
+let coopRealtimeSubs=[]; // supabase realtime subscriptions
+let coopBitesCache={};  // {team_id: [bites]}
+let coopPendingCoopSessId=null; // used after joining, before team setup
+let ctRodCount=2;
+let coopIsCaptain=false;
+
+// --- helpers ---
+function genCoopCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+// --- open entry modal ---
+function openCoopEntry(){
+  const banner=document.getElementById('coop-active-banner');
+  if(coopSess){
+    banner.style.display='';
+    const myTeamName=coopMyTeam?.name||'—';
+    const isOwner=coopSess.owner_id===user.id;
+    document.getElementById('coop-active-desc').innerHTML=
+      `<strong>${coopSess.lake_name}</strong> · Команда: <strong>${myTeamName}</strong>`+
+      (isOwner?` <span style="font-size:10px;color:var(--gold);background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:4px;padding:1px 6px">організатор</span>`:'');
+  } else {
+    banner.style.display='none';
+  }
+  openModal('coop-entry-modal');
+}
+
+// --- check if user already in a coop session on load ---
+async function loadCoopState(){
+  try{
+    // find active membership
+    const {data:member}=await sb.from('co_members')
+      .select('*,co_teams(*,co_sessions(*))')
+      .eq('user_id',user.id)
+      .eq('co_teams.co_sessions.is_active',true)
+      .single();
+    if(!member?.co_teams?.co_sessions)return;
+    const sess=member.co_teams.co_sessions;
+    if(!sess.is_active)return;
+    coopSess=sess;
+    coopMyTeam=member.co_teams;
+    coopMyMember=member;
+    await refreshCoopTeams();
+    subscribeCoopRealtime();
+  }catch(e){}
+}
+
+// --- open CREATE flow ---
+function openCoopCreate(){
+  if(activeSess){toast('Спочатку завершіть активну особисту сесію');return}
+  if(coopSess){toast('Ви вже в спільній сесії');return}
+  closeModal('coop-entry-modal');
+  const sel=document.getElementById('ccs-lake');
+  sel.innerHTML=(settings?.lakes||[]).map(l=>`<option>${l}</option>`).join('');
+  document.getElementById('ccs-start').value=toLocalDT();
+  coopUpdateEnd();
+  openModal('coop-create-modal');
+}
+
+function coopUpdateEnd(){
+  const durEl=document.querySelector('#ccs-dur .seg-btn.active');
+  const dur=DUR[durEl?.textContent]||12;
+  const startVal=document.getElementById('ccs-start').value;
+  if(!startVal)return;
+  const end=new Date(new Date(startVal).getTime()+dur*3600000);
+  document.getElementById('ccs-end').value=toLocalDT(end);
+}
+
+async function saveCoopSession(){
+  const lake=document.getElementById('ccs-lake').value;
+  const startVal=document.getElementById('ccs-start').value;
+  const endVal=document.getElementById('ccs-end').value;
+  if(!startVal||!endVal){toast('⚠ Вкажіть дати');return}
+  const durEl=document.querySelector('#ccs-dur .seg-btn.active');
+  const durH=DUR[durEl?.textContent]||12;
+  const btn=document.getElementById('ccs-btn');
+  btn.disabled=true;btn.textContent='Створення...';
+  const code=genCoopCode();
+  const {data:sess,error}=await sb.from('co_sessions').insert({
+    owner_id:user.id,
+    code,
+    lake_name:lake,
+    duration_hours:durH,
+    started_at:new Date(startVal).toISOString(),
+    ends_at:new Date(endVal).toISOString(),
+    is_active:true
+  }).select().single();
+  btn.disabled=false;btn.textContent='Створити та отримати код';
+  if(error){toast('Помилка: '+error.message);return}
+  coopSess=sess;
+  closeModal('coop-create-modal');
+  // show code
+  document.getElementById('coop-code-display').textContent=code;
+  const codeBox=document.getElementById('coop-code-display').closest('.coop-code-box');
+  codeBox.onclick=()=>{navigator.clipboard?.writeText(code).then(()=>toast('✓ Код скопійовано'));};
+  openModal('coop-code-modal');
+}
+
+// --- open JOIN flow ---
+function openCoopJoin(){
+  if(activeSess){toast('Спочатку завершіть активну особисту сесію');return}
+  if(coopSess){toast('Ви вже в спільній сесії');return}
+  closeModal('coop-entry-modal');
+  document.getElementById('cj-code').value='';
+  document.getElementById('cj-info').style.display='none';
+  document.getElementById('cj-err').textContent='';
+  document.getElementById('cj-btn').textContent='Знайти сесію';
+  openModal('coop-join-modal');
+}
+
+async function searchCoopSession(){
+  const code=document.getElementById('cj-code').value.trim().toUpperCase();
+  const err=document.getElementById('cj-err');
+  err.textContent='';
+  if(code.length<4){err.textContent='Введіть код сесії';return}
+  const btn=document.getElementById('cj-btn');
+  btn.disabled=true;btn.textContent='Пошук...';
+  const {data:sess}=await sb.from('co_sessions').select('*').eq('code',code).eq('is_active',true).single();
+  btn.disabled=false;
+  if(!sess){err.textContent='Сесію не знайдено або вона вже завершена';btn.textContent='Знайти сесію';return}
+  // show info
+  document.getElementById('cj-info').style.display='';
+  document.getElementById('cj-info-lake').textContent=sess.lake_name;
+  document.getElementById('cj-info-dates').textContent=fmtDate(sess.started_at)+' — '+fmtDate(sess.ends_at);
+  btn.textContent='Приєднатися →';
+  btn.onclick=()=>joinCoopSession(sess);
+}
+
+async function joinCoopSession(sess){
+  const btn=document.getElementById('cj-btn');
+  btn.disabled=true;btn.textContent='Приєднання...';
+  coopSess=sess;
+  coopPendingCoopSessId=sess.id;
+  closeModal('coop-join-modal');
+  await openCoopTeamSetup(false);
+  btn.disabled=false;btn.textContent='Знайти сесію';
+  btn.onclick=searchCoopSession;
+}
+
+// --- Team Setup ---
+let coopTeamSetupIsOwner=false;
+
+async function openCoopTeamSetup(isOwner){
+  coopTeamSetupIsOwner=isOwner;
+  coopIsCaptain=isOwner; // owner defaults to captain
+  document.getElementById('coop-team-modal-title').textContent=isOwner?'Моя команда (організатор)':'Приєднатися до команди';
+  // reset form
+  document.getElementById('ct-name').value='';
+  document.getElementById('ct-sector').value='';
+  document.getElementById('ct-bait').value='';
+  selCtRod(2);
+  document.querySelectorAll('#ct-rig .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  // captain toggle
+  updateCaptainToggle();
+  // load existing teams
+  await refreshCoopTeams();
+  renderCoopExistingTeams();
+  openModal('coop-team-modal');
+}
+
+function updateCaptainToggle(){
+  const tog=document.getElementById('ct-captain-toggle');
+  const knob=document.getElementById('ct-captain-knob');
+  if(coopIsCaptain){
+    tog.style.background='rgba(201,168,76,.6)';
+    knob.style.transform='translateX(20px)';
+  } else {
+    tog.style.background='rgba(201,168,76,.2)';
+    knob.style.transform='translateX(0)';
+  }
+}
+function toggleCaptain(){
+  coopIsCaptain=!coopIsCaptain;
+  updateCaptainToggle();
+}
+function selCtRod(n){
+  ctRodCount=n;
+  document.querySelectorAll('#ct-rods .rod-chip').forEach((b,i)=>b.classList.toggle('active',i+1===n));
+}
+
+function renderCoopExistingTeams(){
+  const el=document.getElementById('coop-existing-teams');
+  const block=document.getElementById('coop-existing-teams-block');
+  if(!coopAllTeams.length){block.style.display='none';return}
+  block.style.display='';
+  el.innerHTML='';
+  coopAllTeams.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='team-card';
+    card.innerHTML=`
+      <div>
+        <div class="team-card-name">${t.name}</div>
+        <div class="team-card-meta">${t.rods||2} вуд. · ${t.sector||'сектор н/у'}</div>
+      </div>
+      <button onclick="joinExistingTeam('${t.id}')" style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:var(--r2);padding:6px 12px;color:var(--gold);font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Вступити</button>
+    `;
+    el.appendChild(card);
+  });
+}
+
+async function joinExistingTeam(teamId){
+  const btn=document.getElementById('ct-btn');
+  btn.disabled=true;btn.textContent='Приєднання...';
+  const team=coopAllTeams.find(t=>t.id===teamId);
+  if(!team){btn.disabled=false;btn.textContent='Зберегти та увійти';return}
+  const {data:member,error}=await sb.from('co_members').insert({
+    team_id:teamId,
+    session_id:coopSess.id,
+    user_id:user.id,
+    is_captain:coopIsCaptain
+  }).select().single();
+  btn.disabled=false;btn.textContent='Зберегти та увійти';
+  if(error){toast('Помилка: '+error.message);return}
+  coopMyTeam=team;
+  coopMyMember=member;
+  closeModal('coop-team-modal');
+  await refreshCoopTeams();
+  subscribeCoopRealtime();
+  openCoopSessionView();
+}
+
+async function saveCoopTeam(){
+  const name=document.getElementById('ct-name').value.trim();
+  if(!name){
+    document.getElementById('ct-name').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('ct-name').style.borderColor='',2000);
+    toast('⚠ Введіть назву команди');return;
+  }
+  const btn=document.getElementById('ct-btn');
+  btn.disabled=true;btn.textContent='Збереження...';
+  const sector=document.getElementById('ct-sector').value.trim();
+  const bait=document.getElementById('ct-bait').value.trim();
+  const rigEl=document.querySelector('#ct-rig .seg-btn.active');
+  const rig=rigEl?.textContent||'Метод флет';
+  // create team
+  const {data:team,error:tErr}=await sb.from('co_teams').insert({
+    session_id:coopSess.id,
+    name,
+    sector,
+    rods:ctRodCount,
+    rig,
+    bait_program:bait
+  }).select().single();
+  if(tErr){btn.disabled=false;btn.textContent='Зберегти та увійти';toast('Помилка: '+tErr.message);return}
+  // join as member
+  const {data:member,error:mErr}=await sb.from('co_members').insert({
+    team_id:team.id,
+    session_id:coopSess.id,
+    user_id:user.id,
+    is_captain:coopIsCaptain
+  }).select().single();
+  btn.disabled=false;btn.textContent='Зберегти та увійти';
+  if(mErr){toast('Помилка: '+mErr.message);return}
+  coopMyTeam=team;
+  coopMyMember=member;
+  closeModal('coop-team-modal');
+  closeModal('coop-code-modal');
+  await refreshCoopTeams();
+  subscribeCoopRealtime();
+  openCoopSessionView();
+}
+
+// --- refresh teams list ---
+async function refreshCoopTeams(){
+  if(!coopSess)return;
+  const {data}=await sb.from('co_teams').select('*').eq('session_id',coopSess.id).order('created_at');
+  coopAllTeams=data||[];
+}
+
+// --- REALTIME ---
+function subscribeCoopRealtime(){
+  // unsubscribe previous
+  coopRealtimeSubs.forEach(s=>sb.removeChannel(s));
+  coopRealtimeSubs=[];
+  if(!coopSess)return;
+
+  // subscribe to new bites in this coop session
+  const bitesSub=sb.channel('coop-bites-'+coopSess.id)
+    .on('postgres_changes',{
+      event:'INSERT',schema:'public',table:'bites',
+      filter:`coop_session_id=eq.${coopSess.id}`
+    },payload=>{
+      const b=payload.new;
+      if(!coopBitesCache[b.team_id])coopBitesCache[b.team_id]=[];
+      // dedup: skip if already added locally
+      if(coopBitesCache[b.team_id].some(x=>x.id===b.id))return;
+      coopBitesCache[b.team_id].push(b);
+      // re-render if that tab is visible
+      if(coopTabActive===b.team_id)renderCoopTabContent(b.team_id);
+      else{
+        // highlight the tab
+        const tab=document.querySelector(`.coop-tab[data-team="${b.team_id}"]`);
+        if(tab&&!tab.querySelector('.coop-tab-dot')){
+          const dot=document.createElement('span');dot.className='coop-tab-dot';tab.appendChild(dot);
+        }
+      }
+      // оновити статистику якщо відкрита
+      if(document.getElementById('coop-stats-screen')?.style.display==='flex')renderCoopStats();
+    })
+    .on('postgres_changes',{
+      event:'DELETE',schema:'public',table:'bites',
+      filter:`coop_session_id=eq.${coopSess.id}`
+    },async payload=>{
+      // reload bites for affected team
+      const teamId=payload.old?.team_id;
+      if(teamId){await loadCoopTeamBites(teamId);if(coopTabActive===teamId)renderCoopTabContent(teamId);}
+    })
+    .subscribe();
+  coopRealtimeSubs.push(bitesSub);
+
+  // subscribe to new teams
+  const teamsSub=sb.channel('coop-teams-'+coopSess.id)
+    .on('postgres_changes',{
+      event:'INSERT',schema:'public',table:'co_teams',
+      filter:`session_id=eq.${coopSess.id}`
+    },async payload=>{
+      await refreshCoopTeams();
+      renderCoopTabs();
+    })
+    .subscribe();
+  coopRealtimeSubs.push(teamsSub);
+
+  // subscribe to session end
+  const sessSub=sb.channel('coop-sess-'+coopSess.id)
+    .on('postgres_changes',{
+      event:'UPDATE',schema:'public',table:'co_sessions',
+      filter:`id=eq.${coopSess.id}`
+    },payload=>{
+      if(!payload.new.is_active){
+        // session ended by organizer
+        coopSess=null;coopMyTeam=null;coopMyMember=null;
+        coopRealtimeSubs.forEach(s=>sb.removeChannel(s));coopRealtimeSubs=[];
+        closeCoopSession();
+        toast('Спільну сесію завершено організатором');
+      }
+    })
+    .subscribe();
+  coopRealtimeSubs.push(sessSub);
+}
+
+// --- load bites for a team ---
+async function loadCoopTeamBites(teamId){
+  const {data}=await sb.from('bites').select('*').eq('team_id',teamId).order('bitten_at',{ascending:true});
+  coopBitesCache[teamId]=data||[];
+}
+
+// --- open coop session full-screen view ---
+async function openCoopSessionView(){
+  if(!coopSess)return;
+  // fill header info
+  document.getElementById('coop-view-lake').textContent=coopSess.lake_name;
+  document.getElementById('coop-view-code-small').textContent='#'+coopSess.code;
+  document.getElementById('coop-view-dates').textContent=fmtDate(coopSess.started_at)+' — '+fmtDate(coopSess.ends_at);
+  // show/hide buttons for owner
+  const isOwner=coopSess.owner_id===user.id;
+  document.getElementById('coop-end-all-btn').style.display=isOwner?'':'none';
+  document.getElementById('coop-end-all-placeholder').style.display=isOwner?'none':'';
+  document.getElementById('coop-add-team-btn').style.display=isOwner?'':'none';
+  document.getElementById('coop-org-settings-btn').style.display=isOwner?'':'none';
+  // start header timer
+  updateCoopHeaderTimer();
+  if(!coopHeaderTimerInt)coopHeaderTimerInt=setInterval(updateCoopHeaderTimer,60000);
+  // load bites for all teams
+  await refreshCoopTeams();
+  for(const t of coopAllTeams){await loadCoopTeamBites(t.id);}
+  // render tabs — fix 1: always open on my team tab
+  renderCoopTabs();
+  coopTabActive=coopMyTeam?.id||coopAllTeams[0]?.id||null;
+  // sync active class on tab buttons
+  document.querySelectorAll('.coop-tab').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.team===coopTabActive);
+  });
+  if(coopTabActive)renderCoopTabContent(coopTabActive);
+  // FAB — only show if on my team tab
+  updateCoopFab();
+  // show modal fullscreen
+  const modal=document.getElementById('coop-session-modal');
+  modal.style.display='flex';
+  modal.style.alignItems='stretch';
+  // close other modals
+  closeModal('coop-entry-modal');
+}
+
+function updateCoopFab(){
+  const fab=document.getElementById('coop-fab');
+  if(!fab)return;
+  fab.style.display=(coopMyTeam&&coopTabActive===coopMyTeam.id)?'':'none';
+}
+
+let coopHeaderTimerInt=null;
+function updateCoopHeaderTimer(){
+  const el=document.getElementById('coop-header-timer');
+  if(!el||!coopSess)return;
+  const now=new Date();
+  const ends=new Date(coopSess.ends_at);
+  const left=ends-now;
+  if(left<=0){el.textContent='Завершено';el.style.color='var(--orange)';return;}
+  const h=Math.floor(left/3600000);
+  const m=Math.floor((left%3600000)/60000);
+  el.textContent=h+' год '+String(m).padStart(2,'0')+' хв';
+}
+
+function goToCoopSession(){
+  closeModal('coop-entry-modal');
+  openCoopSessionView();
+}
+
+function closeCoopSession(){
+  document.getElementById('coop-session-modal').style.display='none';
+}
+
+// --- render tab bar ---
+function renderCoopTabs(){
+  const bar=document.getElementById('coop-tabs-bar');
+  bar.innerHTML='';
+  coopAllTeams.forEach(t=>{
+    const btn=document.createElement('button');
+    btn.className='coop-tab'+(t.id===coopTabActive?' active':'');
+    btn.dataset.team=t.id;
+    btn.textContent=t.name;
+    if(t.id===coopMyTeam?.id){
+      const badge=document.createElement('span');
+      badge.style.cssText='font-size:9px;color:var(--gold);margin-left:4px;opacity:.8';
+      badge.textContent='(моя)';
+      btn.appendChild(badge);
+    }
+    btn.onclick=()=>{
+      coopTabActive=t.id;
+      document.querySelectorAll('.coop-tab').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      btn.querySelectorAll('.coop-tab-dot').forEach(d=>d.remove());
+      updateCoopFab();
+      renderCoopTabContent(t.id);
+    };
+    bar.appendChild(btn);
+  });
+  updateCoopFab();
+}
+
+// --- render content for a team tab ---
+function renderCoopTabContent(teamId){
+  const el=document.getElementById('coop-tab-content');
+  const team=coopAllTeams.find(t=>t.id===teamId);
+  const bites=coopBitesCache[teamId]||[];
+  const isMyTeam=teamId===coopMyTeam?.id;
+  const coopOpts=_loadCoopSpots(teamId).opts;
+  const shareDetails=isMyTeam||(team?.share_bites!==false);
+
+  // ── TOP BLOCK (однаковий для всіх, але кнопки ⚙/🎣 тільки своя команда) ──
+  const topBlock=`
+    <div class="timer-block" style="margin-bottom:12px;padding:14px 14px 12px">
+      <div style="position:absolute;top:10px;right:12px;z-index:2;display:flex;gap:6px">
+        ${isMyTeam?`
+          <button onclick="openCoopFeeding()" style="background:rgba(139,90,43,.18);border:1px solid rgba(139,90,43,.4);border-radius:7px;padding:4px 7px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;width:32px;height:32px" title="Годування"><svg width="20" height="26" viewBox="0 0 20 26" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10" cy="18" rx="5.5" ry="7.5" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><ellipse cx="10" cy="25" rx="3.5" ry="1.8" fill="#d42020"/><path d="M10 11 L2 8 L5 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><path d="M10 11 L18 8 L15 11 Z" fill="#e8e8e8" stroke="#ccc" stroke-width=".5"/><rect x="3" y="9.5" width="14" height="2" rx="1" fill="#d0d0d0" stroke="#bbb" stroke-width=".3"/><path d="M10 11 L7.5 6 Q10 2 12.5 6 Z" fill="#d42020"/><line x1="10" y1="4" x2="10" y2="0.5" stroke="#222" stroke-width="1" stroke-linecap="round"/><circle cx="10" cy="0.5" r="1" fill="#333"/><ellipse cx="8" cy="15" rx="1.5" ry="4" fill="white" fill-opacity=".25" transform="rotate(-10 8 15)"/></svg></button>
+          <button onclick="openCoopFullSettings('${team.id}')" style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 9px;color:var(--gold);font-size:14px;cursor:pointer;line-height:1">⚙</button>
+        `:''}
+      </div>
+      <div class="timer-lake" style="margin-bottom:2px">${team?.name||'—'}</div>
+      <div class="timer-sector">
+        ${team?.sector?`Сектор ${team.sector} · `:''}${team?.rods||2} вуд.${team?.rig?' · '+team.rig:''}
+      </div>
+      ${team?.bait_program&&shareDetails?`<div style="font-size:11px;color:var(--text2);margin-top:4px">${baitProgramEmoji(team.bait_program)} ${team.bait_program}</div>`:''}
+    </div>`;
+
+  if(isMyTeam){
+    // timer calls removed per request
+  }
+
+  // ── SUMMARY з BigFish click (fix 6) ──
+  const totalW=bites.reduce((s,b)=>s+(b.weight||0),0);
+  const maxB=bites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
+  const summaryHtml=`<div class="bites-summary" style="margin-bottom:12px">
+    <div class="summary-card"><div class="summary-num">${bites.length}</div><div class="summary-lbl">Клювань</div></div>
+    <div class="summary-card"><div class="summary-num">${totalW.toFixed(1)}</div><div class="summary-lbl">Кг загалом</div></div>
+    <div class="summary-card" onclick="coopScrollToBigFish('${teamId}')" style="cursor:pointer">
+      <div class="summary-num">${maxB?maxB.weight.toFixed(1):'—'}</div>
+      <div class="summary-lbl">Big fish</div>
+    </div>
+  </div>`;
+
+  // ── BITES з фільтрами (fix 5) ──
+  const savedOpts=sessOpts; sessOpts=coopOpts;
+  let filteredBites=bites.slice().reverse();
+  const activeFilters=coopBiteFilters[teamId]||{};
+  if(Object.keys(activeFilters).length){
+    filteredBites=filteredBites.filter(b=>{
+      for(const [k,v] of Object.entries(activeFilters)){
+        if(k==='distance_m'){if(Number(b[k])!==Number(v))return false;}
+        else if(b[k]!==v)return false;
+      }
+      return true;
+    });
+  }
+
+  const filterTags=Object.entries(activeFilters).map(([k,v])=>
+    `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:3px 8px;font-size:11px;color:var(--gold)">${v}<button onclick="toggleCoopBiteFilter('${teamId}','${k}','${v}')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;padding:2px 4px;line-height:1;min-width:22px;min-height:22px">×</button></span>`
+  ).join('');
+  const filterBar=Object.keys(activeFilters).length
+    ?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding:4px 0"><span style="font-size:13px">🔍</span>${filterTags}<button onclick="clearCoopBiteFilters('${teamId}')" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline">Скинути</button></div>`:' ';
+
+  const sectionLabel=`<div class="section-label">Клювання <span>${filteredBites.length}${Object.keys(activeFilters).length?' / '+bites.length:''}</span></div>`;
+
+  let bitesHtml='';
+  if(!bites.length){
+    bitesHtml=`<div class="empty-state" style="padding:24px 0"><div class="empty-icon" style="font-size:28px">🐟</div><div class="empty-title" style="font-size:15px">Клювань ще немає</div>${isMyTeam?'<div class="empty-sub">Натисни "＋ Клювання"</div>':''}</div>`;
+  } else if(!filteredBites.length){
+    bitesHtml=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Немає клювань за фільтром</div>`;
+  } else {
+    filteredBites.forEach(b=>{
+      if(isMyTeam) bitesHtml+=biteCoopSwipeCardHTML(b,coopSess?.started_at,teamId);
+      else         bitesHtml+=biteCoopCardHTML(b,false,coopSess?.started_at,teamId);
+    });
+  }
+  sessOpts=savedOpts;
+
+  // ── LEAVE BUTTON (тільки своя команда) ──
+  const leaveBtn=isMyTeam?(coopSess?.owner_id===user.id
+    ?`<div style="font-size:11px;color:var(--text3);margin-top:16px;padding-top:16px;border-top:1px solid var(--border);text-align:center">Ви організатор — використовуйте «Завершити все» у хедері</div>`
+    :`<button onclick="leaveCoopSession()" style="width:100%;background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:11px;color:var(--text3);font-family:Inter,sans-serif;font-size:13px;cursor:pointer;margin-top:16px">Покинути спільну сесію</button>`):'';
+
+  el.innerHTML=topBlock+summaryHtml+filterBar+sectionLabel+bitesHtml+leaveBtn;
+}
+
+// simplified bite card for coop (no swipe actions for readonly, with delete for own)
+function biteCoopCardHTML(b,isMyTeam,sessStartedAt,teamId){
+  const fishObj=(settings?.fish_types||[]).find(f=>f.name===b.fish_type);
+  const uw=fishObj?fishObj.unwanted:UNWANTED.includes(b.fish_type);
+  const validIcon=uw?`<span class="bite-valid-icon invalid">✕</span>`:'';
+  const tid=teamId||b.team_id||'';
+  // Fix 4: якщо share_bites=false — показуємо тільки вагу і час
+  const team=coopAllTeams.find(t=>t.id===tid);
+  const shareDetails=team?.share_bites!==false;
+  const opts=shareDetails?sessOpts:{rod:false,dist:false,baitType:false,flavor:false,color:false,size:false,datetime:true,elapsed:false};
+  const distBadge=b.distance_m&&opts.dist
+    ?`<div class="bite-dist-badge" onclick="toggleCoopBiteFilter('${tid}','distance_m',${b.distance_m})" style="cursor:pointer"><svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px;opacity:.8"><circle cx="5.5" cy="5.5" r="4.5" fill="none" stroke="#63b0ff" stroke-width="1"/><circle cx="5.5" cy="5.5" r="2" fill="none" stroke="#63b0ff" stroke-width="1"/><circle cx="5.5" cy="5.5" r=".8" fill="#63b0ff"/></svg>${b.distance_m} м.</div>`:'';
+  const baitStr=shareDetails?coloredBaitStrCoop(b,opts,tid):'';
+  const rodTag=b.rod_number&&opts.rod
+    ?`<span class="bite-tag" onclick="coopShowPegTooltip(event,${b.rod_number},${b.distance_m||'null'},'${tid}')" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:'';
+  // Fix 7: datetime з іконкою як в соло
+  let elapsedStr='';
+  if(sessStartedAt&&b.bitten_at&&opts.elapsed){
+    const diff=new Date(b.bitten_at)-new Date(sessStartedAt);
+    if(diff>=0){const eh=Math.floor(diff/3600000);const em=Math.floor((diff%3600000)/60000);
+      elapsedStr=` <span style="color:var(--text3);font-size:10px">(<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:2px"><circle cx="5.5" cy="6.5" r="3.8" fill="none" stroke="white" stroke-width="1" opacity=".75"/><line x1="5.5" y1="6.5" x2="5.5" y2="4.2" stroke="white" stroke-width="1" stroke-linecap="round" opacity=".75"/><line x1="5.5" y1="6.5" x2="7.5" y2="6.5" stroke="white" stroke-width="1" stroke-linecap="round" opacity=".75"/></svg>${eh} год ${String(em).padStart(2,'0')} хв)</span>`;}
+  }
+  const datetimeStr=opts.datetime?`<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px"><rect x="1" y="2" width="9" height="8" rx="1.5" fill="none" stroke="white" stroke-width="1" opacity=".7"/><line x1="1" y1="4.5" x2="10" y2="4.5" stroke="white" stroke-width=".8" opacity=".7"/><line x1="3.5" y1="1" x2="3.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/><line x1="7.5" y1="1" x2="7.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/></svg>${fmtDateShort(b.bitten_at)}${elapsedStr}`:'';
+  const hiddenNote=!shareDetails?`<div style="font-size:10px;color:var(--text3);font-style:italic;margin-top:4px">Деталі приховані командою</div>`:'';
+  return `<div class="bite-card" style="margin-bottom:8px;cursor:default">
+    ${validIcon}
+    <div class="bite-card-content">
+      <div class="bite-fish-col">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#e05c5c;line-height:1;white-space:nowrap">${b.weight||'—'}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:1px">кг</div>
+        <div style="font-size:9px;color:var(--text2);text-align:center;line-height:1.2;margin-top:3px">${b.fish_type}</div>
+      </div>
+      <div class="bite-divider"></div>
+      <div class="bite-details">
+        <div class="bite-row" style="min-height:22px">${rodTag}</div>
+        <div class="bite-row" style="flex-wrap:wrap;gap:4px;min-height:22px">${baitStr}</div>
+        <div class="bite-time" style="min-height:16px">${datetimeStr}</div>
+        ${b.notes&&shareDetails?`<div class="bite-notes">${b.notes}</div>`:''}
+        ${hiddenNote}
+      </div>
+    </div>
+    ${distBadge}
+  </div>`;
+}
+
+// swipe card для своєї команди (з редагуванням і видаленням)
+function biteCoopSwipeCardHTML(b, sessStartedAt, teamId){
+  const fishObj=(settings?.fish_types||[]).find(f=>f.name===b.fish_type);
+  const uw=fishObj?fishObj.unwanted:UNWANTED.includes(b.fish_type);
+  const validIcon=uw?`<span class="bite-valid-icon invalid">✕</span>`:'';
+  const tid=teamId||b.team_id||'';
+  const distBadge=b.distance_m
+    ?`<div class="bite-dist-badge" onclick="toggleCoopBiteFilter('${tid}','distance_m',${b.distance_m})" style="cursor:pointer"><svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px;opacity:.8"><circle cx="5.5" cy="5.5" r="4.5" fill="none" stroke="#63b0ff" stroke-width="1"/><circle cx="5.5" cy="5.5" r="2" fill="none" stroke="#63b0ff" stroke-width="1"/><circle cx="5.5" cy="5.5" r=".8" fill="#63b0ff"/></svg>${b.distance_m} м.</div>`:'';
+  const baitStr=coloredBaitStrCoop(b,sessOpts,tid);
+  const rodTag=b.rod_number&&sessOpts.rod
+    ?`<span class="bite-tag" onclick="coopShowPegTooltip(event,${b.rod_number},${b.distance_m||'null'},'${tid}')" style="cursor:pointer">Вуд. ${b.rod_number}</span>`:'';
+  // Fix 7: elapsed як в соло — з іконкою годинника
+  let elapsedStr='';
+  if(sessStartedAt&&b.bitten_at&&sessOpts.elapsed){
+    const diff=new Date(b.bitten_at)-new Date(sessStartedAt);
+    if(diff>=0){
+      const eh=Math.floor(diff/3600000);const em=Math.floor((diff%3600000)/60000);
+      elapsedStr=` <span style="color:var(--text3);font-size:10px">(<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:2px"><circle cx="5.5" cy="6.5" r="3.8" fill="none" stroke="white" stroke-width="1" opacity=".75"/><line x1="5.5" y1="6.5" x2="5.5" y2="4.2" stroke="white" stroke-width="1" stroke-linecap="round" opacity=".75"/><line x1="5.5" y1="6.5" x2="7.5" y2="6.5" stroke="white" stroke-width="1" stroke-linecap="round" opacity=".75"/><line x1="3.5" y1="2.2" x2="7.5" y2="2.2" stroke="white" stroke-width=".9" stroke-linecap="round" opacity=".75"/><line x1="5.5" y1="1.2" x2="5.5" y2="2.4" stroke="white" stroke-width=".9" stroke-linecap="round" opacity=".75"/><line x1="8.8" y1="3.5" x2="9.8" y2="2.5" stroke="white" stroke-width=".9" stroke-linecap="round" opacity=".75"/></svg>${eh} год ${String(em).padStart(2,'0')} хв)</span>`;
+    }
+  }
+  // Fix 7: datetime з іконкою календаря як в соло
+  const datetimeStr=sessOpts.datetime?`<svg width="11" height="11" viewBox="0 0 11 11" style="vertical-align:middle;margin-right:3px"><rect x="1" y="2" width="9" height="8" rx="1.5" fill="none" stroke="white" stroke-width="1" opacity=".7"/><line x1="1" y1="4.5" x2="10" y2="4.5" stroke="white" stroke-width=".8" opacity=".7"/><line x1="3.5" y1="1" x2="3.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/><line x1="7.5" y1="1" x2="7.5" y2="3" stroke="white" stroke-width="1" opacity=".7"/></svg>${fmtDateShort(b.bitten_at)}${elapsedStr}`:'';
+  // Fix 5: copy button
+  const copyBtn=`<button onclick="copyBite(${JSON.stringify(b).replace(/"/g,'&quot;')})" style="position:absolute;top:7px;right:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;padding:3px 8px;color:var(--gold);font-size:13px;cursor:pointer;z-index:2;line-height:1">⧉</button>`;
+  return `<div class="bite-card-wrap" id="coop-bcw-${b.id}">
+    <div class="bite-card-actions">
+      <button class="bite-action-btn bite-action-edit" onclick="editCoopBite('${b.id}')" title="Редагувати">✏️</button>
+      <button class="bite-action-btn bite-action-del" onclick="deleteCoopBite('${b.id}')" title="Видалити">🗑</button>
+    </div>
+    <div class="bite-card" ontouchstart="coopSwipeStart(event,'${b.id}')" ontouchend="coopSwipeEnd(event,'${b.id}')" style="cursor:default">
+      ${validIcon}
+      ${copyBtn}
+      <div class="bite-card-content">
+        <div class="bite-fish-col">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#e05c5c;line-height:1;white-space:nowrap">${b.weight||'—'}</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px">кг</div>
+          <div style="font-size:9px;color:var(--text2);text-align:center;line-height:1.2;margin-top:3px">${b.fish_type}</div>
+        </div>
+        <div class="bite-divider"></div>
+        <div class="bite-details">
+          <div class="bite-row" style="min-height:22px">${rodTag}</div>
+          <div class="bite-row" style="flex-wrap:wrap;gap:4px;min-height:22px">${baitStr}</div>
+          <div class="bite-time" style="min-height:16px">${datetimeStr}</div>
+          ${b.notes?`<div class="bite-notes">${b.notes}</div>`:''}
+        </div>
+      </div>
+      ${sessOpts.dist?distBadge:''}
+    </div>
+  </div>`;
+}
+
+// coop swipe handlers
+let coopSwipeTouchX=0,coopSwipeActive=null;
+function coopSwipeStart(e,id){coopSwipeTouchX=e.touches[0].clientX;coopSwipeActive=id;}
+function coopSwipeEnd(e,id){
+  const dx=coopSwipeTouchX-e.changedTouches[0].clientX;
+  const wrap=document.getElementById('coop-bcw-'+id);
+  if(!wrap)return;
+  if(dx>40){
+    document.querySelectorAll('.bite-card-wrap.swiped').forEach(el=>{if(el.id!=='coop-bcw-'+id)el.classList.remove('swiped')});
+    wrap.classList.add('swiped');e.preventDefault();
+  } else if(dx<-20){wrap.classList.remove('swiped');}
+}
+
+// ── COOP BITE FILTERS (per team) ──
+let coopBiteFilters={};  // {teamId: {key: val}}
+
+function toggleCoopBiteFilter(teamId,key,val){
+  if(!coopBiteFilters[teamId])coopBiteFilters[teamId]={};
+  if(coopBiteFilters[teamId][key]==val) delete coopBiteFilters[teamId][key];
+  else coopBiteFilters[teamId][key]=val;
+  renderCoopTabContent(teamId);
+}
+function clearCoopBiteFilters(teamId){
+  coopBiteFilters[teamId]={};
+  renderCoopTabContent(teamId);
+}
+
+// coloredBaitStr для кооп — клік на тег додає фільтр для команди
+function coloredBaitStrCoop(b,opts,teamId){
+  const o=opts||{baitType:true,flavor:true,color:true,size:true};
+  const parts=[];
+  if(o.baitType&&b.bait_type){
+    const st=BAIT_TYPE_STYLE[b.bait_type]||'background:rgba(196,168,130,.12);border:1px solid rgba(196,168,130,.3);color:#c4a882';
+    parts.push(`<span onclick="toggleCoopBiteFilter('${teamId}','bait_type','${b.bait_type}')" style="font-size:10px;font-weight:600;cursor:pointer;border-radius:5px;padding:4px 8px;${st}">${b.bait_type}</span>`);
+  }
+  if(o.flavor&&b.bait_flavor){
+    parts.push(`<span onclick="toggleCoopBiteFilter('${teamId}','bait_flavor','${b.bait_flavor}')" style="font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(168,155,196,.3);background:rgba(168,155,196,.1);border-radius:5px;padding:4px 8px;color:#a89bc4">${b.bait_flavor}</span>`);
+  }
+  if(o.color&&b.bait_color&&b.bait_type!=='Бойл'){
+    const hex=COLOR_HEX[b.bait_color]||'var(--text2)';
+    parts.push(`<span onclick="toggleCoopBiteFilter('${teamId}','bait_color','${b.bait_color}')" style="font-size:10px;font-weight:500;cursor:pointer;border:1px solid ${hex}55;background:${hex}18;border-radius:5px;padding:4px 8px;color:${hex}">${b.bait_color}</span>`);
+  }
+  if(o.size&&b.bait_size) parts.push(`<span onclick="toggleCoopBiteFilter('${teamId}','bait_size','${b.bait_size}')" style="font-size:10px;color:var(--text3);cursor:pointer">${b.bait_size}</span>`);
+  return parts.join(' ');
+}
+
+// peg tooltip для кооп (fix 3)
+function coopShowPegTooltip(e,rodNum,distM,teamId){
+  const spotData=_loadCoopSpots(teamId);
+  const pegDist=spotData.pegDist||5;
+  const dist=distM||(()=>{
+    const spot=spotData.spots.find(s=>(s.rods||[]).map(Number).includes(Number(rodNum))&&s.active!==false);
+    return spot?.dist;
+  })();
+  if(!dist||!pegDist)return;
+  const pegs=(Number(dist)/pegDist).toFixed(1);
+  document.querySelectorAll('.peg-tooltip').forEach(t=>t.remove());
+  const tip=document.createElement('div');
+  tip.className='peg-tooltip';
+  tip.textContent=`${pegs} кіл`;
+  const rect=e.target.getBoundingClientRect();
+  tip.style.cssText=`position:fixed;left:${rect.right-4}px;top:${rect.top}px;transform:translate(0,-100%)`;
+  document.body.appendChild(tip);
+  setTimeout(()=>tip.remove(),4000);
+}
+
+// BigFish scroll + glow для кооп (fix 6)
+function coopScrollToBigFish(teamId){
+  const bites=coopBitesCache[teamId]||[];
+  const maxB=bites.reduce((a,b)=>(!a||b.weight>a.weight)?b:a,null);
+  if(!maxB)return;
+  const el=document.getElementById('coop-bcw-'+maxB.id)||
+           document.querySelector(`#coop-tab-content .bite-card`);
+  // fallback: find by id in read-only cards (no wrap id)
+  const content=document.getElementById('coop-tab-content');
+  if(!el&&!content)return;
+  const target=el||content.querySelectorAll('.bite-card')[0];
+  if(!target)return;
+  target.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>{
+    target.style.transition='box-shadow .3s';
+    target.style.boxShadow='0 0 0 2px var(--gold),0 0 20px rgba(201,168,76,.5)';
+    target.style.borderRadius='var(--r)';
+    setTimeout(()=>{target.style.boxShadow='';},1200);
+  },400);
+}
+
+// coop timer
+let coopTimerInt=null;
+function updateCoopTimer(){
+  const el=document.getElementById('coop-timer-digits');
+  const fill=document.getElementById('coop-timer-fill');
+  if(!el||!coopSess)return;
+  const now=new Date();
+  const ends=new Date(coopSess.ends_at);
+  const starts=new Date(coopSess.started_at);
+  const total=ends-starts;
+  const left=ends-now;
+  if(left<=0){
+    const overtime=now-ends;
+    const oh=Math.floor(overtime/3600000);const om=Math.floor((overtime%3600000)/60000);
+    el.textContent=`+${oh} год. ${String(om).padStart(2,'0')} хв.`;
+    el.style.color='var(--orange)';
+    if(fill)fill.style.width='100%';
+    return;
+  }
+  el.style.color='';
+  const pct=Math.round((1-left/total)*100);
+  if(fill)fill.style.width=pct+'%';
+  const h=Math.floor(left/3600000);const m=Math.floor((left%3600000)/60000);
+  el.textContent=`${h} год. ${String(m).padStart(2,'0')} хв.`;
+}
+
+// редагування кооп-клювання
+function editCoopBite(id){
+  document.querySelectorAll('.bite-card-wrap.swiped').forEach(el=>el.classList.remove('swiped'));
+  const b=(coopBitesCache[coopMyTeam?.id]||[]).find(x=>x.id===id);
+  if(!b)return;
+  editBiteId=id;
+  openCoopBite();
+  setTimeout(()=>{
+    document.querySelector('#new-bite-modal .modal-title').textContent='Редагувати клювання';
+    document.getElementById('nb-btn').textContent='Зберегти зміни';
+    document.getElementById('nb-btn').dataset.coopMode='1';
+    document.querySelectorAll('#nb-fish .chip').forEach(btn=>{
+      btn.classList.toggle('active',btn.dataset.fishName===b.fish_type||btn.textContent===b.fish_type);
+    });
+    if(b.weight)document.getElementById('nb-weight').value=b.weight;
+    if(b.distance_m)document.getElementById('nb-dist').value=b.distance_m;
+    document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(btn=>btn.classList.toggle('active',parseInt(btn.textContent)===b.rod_number));
+    const typeMap={'Поп-ап':'popup','Баланс':'balance','Бойл':'boil'};
+    const bType=typeMap[b.bait_type]||'popup';
+    curBaitType=bType;
+    document.querySelectorAll('#nb-bait-type .seg-btn').forEach((btn,i)=>btn.classList.toggle('active',['popup','balance','boil'][i]===bType));
+    document.getElementById('nb-color-block').style.display=bType==='boil'?'none':'';
+    document.getElementById('nb-size-block').style.display=(bType==='popup'||bType==='balance')?'':'none';
+    document.getElementById('nb-size-boil-block').style.display=bType==='boil'?'':'none';
+    buildFlavorChips();
+    if(b.bait_flavor)document.querySelectorAll('#nb-flavor .chip').forEach(btn=>btn.classList.toggle('active',btn.textContent===b.bait_flavor));
+    buildColorChips();
+    if(b.bait_color)document.querySelectorAll('#nb-color .color-chip').forEach(btn=>btn.classList.toggle('active',btn.textContent.trim()===b.bait_color));
+    if(b.bait_size)document.querySelectorAll('#nb-size .seg-btn,#nb-size-boil .seg-btn').forEach(btn=>btn.classList.toggle('active',btn.textContent===b.bait_size));
+    document.getElementById('nb-time').value=toLocalDT(b.bitten_at);
+    if(b.notes)document.getElementById('nb-notes').value=b.notes;
+  },50);
+}
+function openCoopBite(){
+  if(!coopMyTeam){toast('Спочатку вступіть у команду');return}
+  editBiteId=null;
+  document.getElementById('nb-weight').value='';
+  document.getElementById('nb-dist').value='';
+  document.getElementById('nb-notes').value='';
+  document.getElementById('nb-time').value=toLocalDT();
+  const mt=document.querySelector('#new-bite-modal .modal-title');
+  if(mt)mt.textContent='Клювання · '+coopMyTeam.name;
+  const nb=document.getElementById('nb-btn');
+  if(nb){nb.textContent='Зберегти клювання';nb.dataset.coopMode='1';}
+  // fish chips
+  buildFishChips();
+  // rod chips from team rod count
+  const coopRodCount=coopMyTeam.rods||2;
+  const c=document.getElementById('nb-rod-chips');
+  c.innerHTML='';
+  for(let i=1;i<=coopRodCount;i++){
+    const b=document.createElement('button');
+    b.className='rod-chip'+(i===1?' active':'');
+    b.textContent=i;b.dataset.rodNum=i;
+    b.onclick=()=>{document.querySelectorAll('#nb-rod-chips .rod-chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
+    c.appendChild(b);
+  }
+  // bait
+  curBaitType='popup';
+  document.querySelectorAll('#nb-bait-type .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  buildFlavorChips();buildColorChips();
+  document.getElementById('nb-size-block').style.display='none';
+  document.getElementById('nb-size-boil-block').style.display='none';
+  document.getElementById('nb-color-block').style.display='';
+  // spots — load from team's localStorage key
+  const savedSpots=_loadCoopSpots();
+  sessSpots=savedSpots.spots;sessPegDist=savedSpots.pegDist;
+  sessOpts=savedSpots.opts;
+  buildSpotsChips();
+  openModal('new-bite-modal');
+}
+
+// відкрити ЄДИНЕ вікно з усіма налаштуваннями команди (⚙)
+async function openCoopFullSettings(teamId){
+  const team=coopAllTeams.find(t=>t.id===teamId);
+  if(!team)return;
+  const saved=_loadCoopSpots(teamId);
+  sessSpots=saved.spots;sessPegDist=saved.pegDist;sessOpts=saved.opts;
+  _coopSpotsMode=true;
+  const optList=[
+    {key:'rod',label:'Вудилище'},{key:'dist',label:'Відстань'},
+    {key:'baitType',label:'Вид насадки'},{key:'flavor',label:'Смак насадки'},
+    {key:'color',label:'Колір насадки'},{key:'size',label:'Розмір насадки'},
+    {key:'datetime',label:'Дата та час'},{key:'elapsed',label:'Час від початку'},
+  ];
+  const overlay=document.createElement('div');
+  overlay.id='coop-full-settings-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  overlay.innerHTML=`
+    <div id="coop-full-settings-sheet" style="background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:90dvh;display:flex;flex-direction:column;border-top:1px solid var(--border)">
+      <div id="coop-full-settings-handle" style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 0;flex-shrink:0;cursor:grab"></div>
+      <div style="padding:12px 20px 0;flex-shrink:0">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2)">⚙ Налаштування команди</div>
+      </div>
+      <div style="overflow-y:auto;padding:0 20px 20px;flex:1;min-height:0">
+        <div style="margin-top:14px">
+          <div class="settings-title" style="margin-bottom:10px">Параметри команди</div>
+          <div class="field"><label>Сектор / місце</label><input type="text" id="cfs-sector" value="${team.sector||''}" placeholder="Напр. 7, А3..."></div>
+          <div class="field"><label>Кормова програма</label><input type="text" id="cfs-bait" value="${team.bait_program||''}"></div>
+          <div class="field"><label>Кількість вудилищ</label>
+            <div class="rod-chips" id="cfs-rods">
+              ${[1,2,3,4].map(n=>`<button class="rod-chip${(team.rods||2)===n?' active':''}" onclick="this.parentElement.querySelectorAll('.rod-chip').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${n}</button>`).join('')}
+            </div>
+          </div>
+          <div class="field"><label>Метод ловлі</label>
+            <div class="seg" id="cfs-rig">
+              ${['Метод флет','Класика'].map(r=>`<button class="seg-btn${(team.rig||'Метод флет')===r?' active':''}" onclick="document.querySelectorAll('#cfs-rig .seg-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${r}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(48,54,61,.4)">
+          <div>
+            <div style="font-size:13px;color:var(--text);font-weight:500">Показувати деталі клювань іншим</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Якщо вимкнено — інші бачать тільки вагу і час</div>
+          </div>
+          <div id="cfs-tog-share" onclick="toggleCoopShareBites()" style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0;margin-left:12px;background:${team.share_bites!==false?'var(--green)':'var(--surface2)'};border-radius:12px;transition:.2s">
+            <div style="position:absolute;top:2px;left:${team.share_bites!==false?'20px':'2px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s"></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="margin-bottom:8px">
+          <div class="settings-title" style="margin-bottom:8px">Відстань між кілочками (м)</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="cfs-peg-chips">
+            ${[4,5].map(v=>`<button onclick="sessPegDist=${v};saveSessSpots();document.querySelectorAll('#cfs-peg-chips button').forEach(b=>b.classList.toggle('active',b.textContent=='${v}м'))" class="chip${sessPegDist===v?' active':''}" style="padding:10px 24px;font-size:15px">${v}м</button>`).join('')}
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="settings-title" style="margin-bottom:0">Точки лову</div>
+          <button onclick="addCoopSpot()" style="background:var(--gold);border:none;border-radius:var(--r2);padding:8px 16px;color:#0d1117;font-weight:600;font-size:13px;cursor:pointer;font-family:Inter,sans-serif">+ Додати</button>
+        </div>
+        <div id="cfs-spots-list"></div>
+        <div class="divider"></div>
+        <div class="settings-title" style="margin-bottom:10px">Показувати в картці клювання</div>
+        ${optList.map(({key,label})=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(48,54,61,.4)">
+            <span style="font-size:13px;color:var(--text)">${label}</span>
+            <div id="cfs-tog-${key}" onclick="toggleCoopOpt('${key}')" style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0;background:${sessOpts[key]?'var(--green)':'var(--surface2)'};border-radius:12px;transition:.2s">
+              <div style="position:absolute;top:2px;left:${sessOpts[key]?'20px':'2px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="padding:12px 20px 28px;border-top:1px solid var(--border);flex-shrink:0">
+        <button onclick="saveCoopFullSettings('${teamId}')" style="width:100%;background:var(--gold);border:none;border-radius:var(--r);padding:13px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:#0d1117;cursor:pointer;margin-bottom:8px">Зберегти</button>
+        <button onclick="closeCoopFullSettings()" style="width:100%;background:transparent;border:none;color:var(--text3);font-family:Inter,sans-serif;font-size:13px;cursor:pointer;padding:6px">Скасувати</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  initSheetSwipeDown('coop-full-settings-handle','coop-full-settings-sheet',()=>{closeCoopFullSettings();overlay.remove();});
+  renderCfsSpots();
+}
+
+function toggleCoopOpt(key){
+  sessOpts[key]=!sessOpts[key];
+  saveSessSpots();
+  const tog=document.getElementById('cfs-tog-'+key);
+  if(tog){
+    tog.style.background=sessOpts[key]?'var(--green)':'var(--surface2)';
+    tog.querySelector('div').style.left=sessOpts[key]?'20px':'2px';
+  }
+}
+
+function addCoopSpot(){
+  const n=sessSpots.length+1;
+  sessSpots.push({id:Date.now(),name:`Точка ${n}`,dist:null,active:true,rods:[]});
+  saveSessSpots();renderCfsSpots();
+}
+
+function renderCfsSpots(){
+  const el=document.getElementById('cfs-spots-list');
+  if(!el)return;
+  const totalRods=parseInt(document.querySelector('#cfs-rods .rod-chip.active')?.textContent)||coopMyTeam?.rods||2;
+  const assignedRods=new Set(sessSpots.flatMap(s=>s.rods||[]));
+  const unassigned=[];
+  for(let i=1;i<=totalRods;i++){if(!assignedRods.has(i))unassigned.push(i);}
+
+  let html=`
+    <div style="margin-bottom:10px">
+      <div class="settings-title" style="margin-bottom:6px">Нерозподілені вудилища <span style="font-size:10px;color:var(--text3);font-weight:400">(утримуй і тягни)</span></div>
+      <div class="unassigned-pool" id="cfs-unassigned-pool"
+        ondragover="event.preventDefault();this.classList.add('drag-over-spot')"
+        ondragleave="this.classList.remove('drag-over-spot')"
+        ondrop="cfsDropRodToUnassigned(event)">
+        ${unassigned.map(r=>`<div class="spot-rod-chip" draggable="true"
+          ondragstart="cfsDragRodStart(event,${r},'unassigned')"
+          ontouchstart="cfsTouchRodStart(event,${r},'unassigned')"
+          ontouchmove="cfsTouchRodMove(event)"
+          ontouchend="cfsTouchRodEnd(event)"
+          style="padding:10px 18px;font-size:14px;min-width:64px;justify-content:center">Вуд.${r}</div>`).join('')}
+        ${unassigned.length===0?`<span style="font-size:12px;color:var(--text3)">Всі вудилища розподілені</span>`:''}
+      </div>
+    </div>`;
+
+  sessSpots.forEach((spot,si)=>{
+    html+=`<div class="spot-row${spot.active===false?' inactive':''}">
+      <div class="spot-header">
+        <input value="${spot.name}" onchange="sessSpots[${si}].name=this.value;saveSessSpots()" style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;font-family:Inter,sans-serif;outline:none;padding:2px 0">
+        <input type="number" value="${spot.dist||''}" placeholder="м" onchange="sessSpots[${si}].dist=parseFloat(this.value)||null;saveSessSpots();renderCfsSpots()" style="width:52px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:#63b0ff;font-size:12px;font-family:Inter,sans-serif;outline:none;padding:3px 6px;text-align:center">
+        <button onclick="toggleCoopSpot(${si})" style="background:transparent;border:1px solid var(--border2);border-radius:5px;padding:3px 7px;font-size:10px;color:${spot.active===false?'var(--gold)':'var(--text3)'};cursor:pointer;font-family:Inter,sans-serif">${spot.active===false?'↩':'Деак.'}</button>
+        <button onclick="sessSpots.splice(${si},1);saveSessSpots();renderCfsSpots()" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:6px 8px;min-width:36px">×</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Перетягни вудилища:</div>
+      <div class="spot-rods" data-si="${si}"
+        ondragover="event.preventDefault();this.classList.add('drag-over-spot')"
+        ondragleave="this.classList.remove('drag-over-spot')"
+        ondrop="cfsDropRodToSpot(event,${si})"
+        ontouchmove="cfsTouchRodMove(event)"
+        ontouchend="cfsTouchRodEndToSpot(event,${si})"
+        style="min-height:44px;padding:6px">
+        ${(spot.rods||[]).map(r=>`<div class="spot-rod-chip" draggable="true"
+          ondragstart="cfsDragRodStart(event,${r},${si})"
+          ontouchstart="cfsTouchRodStart(event,${r},${si})"
+          ontouchmove="cfsTouchRodMove(event)"
+          ontouchend="cfsTouchRodEnd(event)"
+          style="padding:8px 16px;font-size:13px;min-width:60px;justify-content:center">Вуд.${r}</div>`).join('')}
+        ${!(spot.rods||[]).length?`<span style="font-size:11px;color:var(--text3)">порожньо</span>`:''}
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function toggleCoopSpot(si){sessSpots[si].active=sessSpots[si].active===false?true:false;saveSessSpots();renderCfsSpots();}
+
+// drag-and-drop для точок у кооп-налаштуваннях
+let cfsDragRodNum=null,cfsDragRodFrom=null;
+function cfsDragRodStart(e,rodNum,fromSi){cfsDragRodNum=rodNum;cfsDragRodFrom=fromSi;e.dataTransfer.effectAllowed='move';}
+function cfsDropRodToSpot(e,toSi){
+  e.preventDefault();
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  if(cfsDragRodNum===null)return;
+  const rodNum=Number(cfsDragRodNum);
+  if(cfsDragRodFrom!=='unassigned'){const src=sessSpots[cfsDragRodFrom];if(src)src.rods=(src.rods||[]).filter(r=>Number(r)!==rodNum);}
+  if(!sessSpots[toSi].rods)sessSpots[toSi].rods=[];
+  if(!sessSpots[toSi].rods.map(Number).includes(rodNum))sessSpots[toSi].rods.push(rodNum);
+  saveSessSpots();renderCfsSpots();
+}
+function cfsDropRodToUnassigned(e){
+  e.preventDefault();
+  document.querySelectorAll('.spot-rods,.unassigned-pool').forEach(el=>el.classList.remove('drag-over-spot'));
+  if(cfsDragRodNum===null||cfsDragRodFrom==='unassigned')return;
+  const rodNum=Number(cfsDragRodNum);
+  const src=sessSpots[cfsDragRodFrom];
+  if(src)src.rods=(src.rods||[]).filter(r=>Number(r)!==rodNum);
+  saveSessSpots();renderCfsSpots();
+}
+
+// touch drag для кооп точок
+let cfsTouchRodNum=null,cfsTouchRodFrom=null,cfsTouchClone=null,cfsTouchEl=null;
+function cfsTouchRodStart(e,rodNum,fromSi){
+  cfsTouchRodNum=rodNum;cfsTouchRodFrom=fromSi;cfsTouchEl=e.currentTarget;
+  const rect=e.currentTarget.getBoundingClientRect();
+  cfsTouchClone=e.currentTarget.cloneNode(true);
+  cfsTouchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:.85;z-index:9999;pointer-events:none`;
+  document.body.appendChild(cfsTouchClone);
+  e.currentTarget.style.opacity='.3';
+}
+function cfsTouchRodMove(e){
+  if(!cfsTouchClone)return;
+  e.preventDefault();
+  const t=e.touches[0];
+  cfsTouchClone.style.left=(t.clientX-30)+'px';
+  cfsTouchClone.style.top=(t.clientY-16)+'px';
+}
+function cfsTouchRodEnd(e){
+  if(!cfsTouchClone)return;
+  cfsTouchClone.remove();cfsTouchClone=null;
+  if(cfsTouchEl)cfsTouchEl.style.opacity='';
+  const t=e.changedTouches[0];
+  // find drop target
+  const allSpotRods=document.querySelectorAll('#cfs-spots-list .spot-rods');
+  let dropped=false;
+  allSpotRods.forEach(zone=>{
+    const r=zone.getBoundingClientRect();
+    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      const si=parseInt(zone.dataset.si);
+      cfsDropRodToSpot({preventDefault:()=>{}},si);dropped=true;
+    }
+  });
+  if(!dropped){
+    const pool=document.getElementById('cfs-unassigned-pool');
+    if(pool){const r=pool.getBoundingClientRect();if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)cfsDropRodToUnassigned({preventDefault:()=>{}});}
+  }
+}
+function cfsTouchRodEndToSpot(e,toSi){cfsTouchRodEnd(e);}
+
+function toggleCoopShareBites(){
+  const tog=document.getElementById('cfs-tog-share');
+  if(!tog)return;
+  const isOn=tog.style.background.includes('green');
+  const newVal=!isOn;
+  tog.style.background=newVal?'var(--green)':'var(--surface2)';
+  tog.querySelector('div').style.left=newVal?'20px':'2px';
+  tog.dataset.val=newVal?'1':'0';
+}
+
+async function saveCoopFullSettings(teamId){
+  const sector=document.getElementById('cfs-sector')?.value.trim()||'';
+  const bait=document.getElementById('cfs-bait')?.value.trim()||'';
+  const rods=parseInt(document.querySelector('#cfs-rods .rod-chip.active')?.textContent)||2;
+  const rig=document.querySelector('#cfs-rig .seg-btn.active')?.textContent||'Метод флет';
+  const shareTog=document.getElementById('cfs-tog-share');
+  const share_bites=shareTog?shareTog.dataset.val!=='0':true;
+  await sb.from('co_teams').update({sector,bait_program:bait,rods,rig,share_bites}).eq('id',teamId);
+  saveSessSpots();
+  _coopSpotsMode=false;
+  await refreshCoopTeams();
+  closeCoopFullSettings();
+  renderCoopTabContent(teamId);
+  toast('✓ Налаштування збережено');
+}
+
+function closeCoopFullSettings(){
+  _coopSpotsMode=false;
+  document.getElementById('coop-full-settings-overlay')?.remove();
+}
+
+function openCoopSpotsSettings(){
+  if(coopMyTeam)openCoopFullSettings(coopMyTeam.id);
+}
+
+function openCoopFeeding(){
+  if(!coopMyTeam){toast('Спочатку вступіть у команду');return}
+  openFeeding();
+}
+
+function _loadCoopSpots(teamId){
+  const tid=teamId||coopMyTeam?.id;
+  try{
+    const raw=localStorage.getItem('coop_spots_'+tid);
+    if(raw){
+      const p=JSON.parse(raw);
+      return{spots:p.spots||[],pegDist:p.pegDist||5,
+        opts:Object.assign({rod:true,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true},p.opts||{})};
+    }
+  }catch{}
+  return{spots:[],pegDist:5,opts:{rod:true,dist:true,baitType:true,flavor:true,color:true,size:true,datetime:true,elapsed:true}};
+}
+
+function saveCoopSpots(){
+  if(!coopMyTeam)return;
+  localStorage.setItem('coop_spots_'+coopMyTeam.id,JSON.stringify({spots:sessSpots,pegDist:sessPegDist,opts:sessOpts}));
+}
+
+async function saveCoopBiteImpl(){
+  const fishEl=document.querySelector('#nb-fish .chip.active');
+  const fish=fishEl?.dataset.fishName||fishEl?.textContent||'Короп';
+  const isUnwanted=fishEl?.dataset.unwanted==='1'||UNWANTED.includes(fish);
+  const weight=parseFloat((document.getElementById('nb-weight').value||'').replace(',','.'))||null;
+  if(!weight){
+    const wInp=document.getElementById('nb-weight');
+    wInp.style.border='1px solid var(--red)';
+    wInp.setAttribute('placeholder','Обов\'язково!');
+    wInp.focus();
+    setTimeout(()=>{wInp.style.border='';wInp.removeAttribute('placeholder');},2500);
+    toast('⚠ Вкажіть вагу риби');return;
+  }
+  const dist=parseFloat(document.getElementById('nb-dist').value)||null;
+  const rodEl=document.querySelector('#nb-rod-chips .rod-chip.active');
+  const rod=rodEl?parseInt(rodEl.textContent):null;
+  const flavorEl=document.querySelector('#nb-flavor .chip.active');
+  const flavor=flavorEl?.textContent||null;
+  const colorEl=document.querySelector('#nb-color .color-chip.active');
+  const colorText=colorEl?.textContent?.trim()||null;
+  const sizeEl=curBaitType==='boil'
+    ?document.querySelector('#nb-size-boil .seg-btn.active')
+    :document.querySelector('#nb-size .seg-btn.active');
+  const size=sizeEl?.textContent||null;
+  const timeVal=document.getElementById('nb-time').value;
+  const notes=document.getElementById('nb-notes').value.trim();
+  const baitTypeLabel={'popup':'Поп-ап','balance':'Баланс','boil':'Бойл'}[curBaitType];
+  const btn=document.getElementById('nb-btn');
+  btn.disabled=true;btn.textContent='Збереження...';
+  const bitePayload={
+    fish_type:fish,weight,distance_m:dist,rod_number:rod,
+    bait_type:baitTypeLabel,bait_flavor:flavor,bait_color:colorText,bait_size:size,
+    notes,is_unwanted:isUnwanted,
+    bitten_at:timeVal?new Date(timeVal).toISOString():new Date().toISOString()
+  };
+  let error,savedBite;
+  if(editBiteId){
+    const res=await sb.from('bites').update(bitePayload).eq('id',editBiteId).select().single();
+    error=res.error;savedBite=res.data;
+    editBiteId=null;
+  } else {
+    const res=await sb.from('bites').insert({
+      user_id:user.id,
+      coop_session_id:coopSess.id,
+      team_id:coopMyTeam.id,
+      ...bitePayload
+    }).select().single();
+    error=res.error;savedBite=res.data;
+  }
+  btn.disabled=false;btn.textContent='Зберегти клювання';
+  delete btn.dataset.coopMode;
+  if(error){toast('Помилка: '+error.message);return}
+  // update local cache immediately (realtime підхопить для інших)
+  if(savedBite){
+    const teamId=coopMyTeam.id;
+    if(!coopBitesCache[teamId])coopBitesCache[teamId]=[];
+    const idx=coopBitesCache[teamId].findIndex(b=>b.id===savedBite.id);
+    if(idx>=0)coopBitesCache[teamId][idx]=savedBite;
+    else coopBitesCache[teamId].push(savedBite);
+  }
+  closeModal('new-bite-modal');
+  toast(isUnwanted?'⚠ Небажана риба зафіксована':'✓ Клювання збережено!');
+  setTimeout(()=>{
+    renderCoopTabContent(coopMyTeam.id);
+    // scroll to bottom
+    const content=document.getElementById('coop-tab-content');
+    if(content)content.scrollTop=content.scrollHeight;
+  },320);
+}
+
+async function deleteCoopBite(id){
+  if(!confirm('Видалити цю клювання?'))return;
+  const teamId=coopMyTeam?.id;
+  // видаляємо локально одразу
+  const wrap=document.getElementById('coop-bcw-'+id);
+  if(wrap){wrap.style.transition='opacity .2s';wrap.style.opacity='0';setTimeout(()=>wrap.remove(),200);}
+  if(teamId&&coopBitesCache[teamId]){
+    coopBitesCache[teamId]=coopBitesCache[teamId].filter(b=>b.id!==id);
+  }
+  await sb.from('bites').delete().eq('id',id);
+  renderCoopTabContent(teamId);
+  toast('✓ Клювання видалено');
+}
+
+// --- end/leave ---
+async function leaveCoopSession(){
+  if(!confirm('Покинути спільну сесію?'))return;
+  if(coopMyMember){
+    await sb.from('co_members').delete().eq('id',coopMyMember.id);
+  }
+  coopRealtimeSubs.forEach(s=>sb.removeChannel(s));coopRealtimeSubs=[];
+  coopSess=null;coopMyTeam=null;coopMyMember=null;coopAllTeams=[];coopBitesCache={};
+  closeCoopSession();
+  closeModal('coop-entry-modal');
+  toast('✓ Ви покинули спільну сесію');
+}
+
+async function endCoopSessionAll(){
+  // красивий діалог замість confirm
+  await new Promise(resolve=>{
+    const dlg=document.createElement('div');
+    dlg.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+    dlg.innerHTML=`
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:300px;width:90%;text-align:center">
+        <div style="font-size:36px;margin-bottom:12px">🏁</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:8px">Завершити все?</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5">Спільна сесія завершиться для всіх учасників. Клювання збережуться.</div>
+        <div style="display:flex;gap:12px;justify-content:center">
+          <button onclick="this.closest('div[style]').remove();resolve(false)" style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px 24px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Скасувати</button>
+          <button onclick="this.closest('div[style]').remove();resolve(true)" style="background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.4);border-radius:10px;padding:10px 24px;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Завершити</button>
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+    // patch resolve into buttons
+    dlg.querySelectorAll('button').forEach((btn,i)=>{
+      btn.onclick=()=>{dlg.remove();resolve(i===1);};
+    });
+  }).then(async confirmed=>{
+    if(!confirmed)return;
+    await sb.from('co_sessions').update({is_active:false}).eq('id',coopSess.id);
+    coopRealtimeSubs.forEach(s=>sb.removeChannel(s));coopRealtimeSubs=[];
+    coopSess=null;coopMyTeam=null;coopMyMember=null;coopAllTeams=[];coopBitesCache={};
+    closeCoopSession();
+    toast('✓ Спільну сесію завершено');
+  });
+}
+
+// організатор створює нову команду
+function openCoopAddTeam(){
+  const overlay=document.createElement('div');
+  overlay.id='coop-add-team-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  overlay.innerHTML=`
+    <div id="oat-sheet" style="background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:0 20px 36px;border-top:1px solid var(--border)">
+      <div id="oat-handle" style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 16px;cursor:grab"></div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2);margin-bottom:16px">Нова команда</div>
+      <div class="field"><label>Назва команди</label><input type="text" id="oat-name" placeholder="Напр. Команда Північ"></div>
+      <div class="field"><label>Сектор / місце</label><input type="text" id="oat-sector" placeholder="Напр. 7, А3..."></div>
+      <div class="field"><label>Кількість вудилищ</label>
+        <div class="rod-chips" id="oat-rods">
+          ${[1,2,3,4].map((n,i)=>`<button class="rod-chip${i===1?' active':''}" onclick="this.parentElement.querySelectorAll('.rod-chip').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div class="field"><label>Метод ловлі</label>
+        <div class="seg" id="oat-rig">
+          <button class="seg-btn active" onclick="document.querySelectorAll('#oat-rig .seg-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Метод флет</button>
+          <button class="seg-btn" onclick="document.querySelectorAll('#oat-rig .seg-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Класика</button>
+        </div>
+      </div>
+      <div class="field"><label>Кормова програма</label><input type="text" id="oat-bait" placeholder="Напр. Krill + Tiger Nut..."></div>
+      <div id="oat-err" style="color:var(--red);font-size:12px;text-align:center;min-height:16px;margin-bottom:8px"></div>
+      <button id="oat-btn" onclick="saveCoopAddTeam(this.closest('div[style]').closest('div[style]'))" style="width:100%;background:var(--gold);border:none;border-radius:var(--r);padding:13px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:#0d1117;cursor:pointer;margin-bottom:8px">Створити команду</button>
+      <button onclick="this.closest('.modal-overlay,div[style*=fixed]')?.remove()||this.closest('div').closest('div').closest('div').closest('div[style]').remove()" style="width:100%;background:transparent;border:none;color:var(--text3);font-family:Inter,sans-serif;font-size:13px;cursor:pointer;padding:6px">Скасувати</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  initSheetSwipeDown('oat-handle','oat-sheet',()=>overlay.remove());
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+  setTimeout(()=>document.getElementById('oat-name')?.focus(),100);
+}
+
+async function saveCoopAddTeam(sheetOrOverlay){
+  const overlay=document.getElementById('coop-add-team-overlay')||sheetOrOverlay?.closest?.('[style*="fixed"]')||sheetOrOverlay;
+  const name=document.getElementById('oat-name')?.value.trim();
+  const err=document.getElementById('oat-err');
+  if(!name){err.textContent='Введіть назву команди';return}
+  const sector=document.getElementById('oat-sector')?.value.trim();
+  const bait=document.getElementById('oat-bait')?.value.trim();
+  const rods=parseInt(document.querySelector('#oat-rods .rod-chip.active')?.textContent)||2;
+  const rig=document.querySelector('#oat-rig .seg-btn.active')?.textContent||'Метод флет';
+  const btn=document.getElementById('oat-btn');
+  btn.disabled=true;btn.textContent='Створення...';
+  const {data:team,error}=await sb.from('co_teams').insert({
+    session_id:coopSess.id,name,sector,rods,rig,bait_program:bait
+  }).select().single();
+  btn.disabled=false;btn.textContent='Створити команду';
+  if(error){err.textContent='Помилка: '+error.message;return}
+  overlay.remove();
+  await refreshCoopTeams();
+  renderCoopTabs();
+  // переходимо на нову вкладку
+  coopTabActive=team.id;
+  document.querySelectorAll('.coop-tab').forEach(b=>b.classList.toggle('active',b.dataset.team===team.id));
+  coopBitesCache[team.id]=[];
+  renderCoopTabContent(team.id);
+  updateCoopFab();
+  toast('✓ Команду «'+name+'» створено');
+}
+
+// ===== ORGANIZER SETTINGS (Fix 8) =====
+let orgMembers=[]; // all members with profiles
+
+async function openCoopOrgSettings(){
+  // load all members + their nicknames
+  const {data:members}=await sb.from('co_members')
+    .select('*,profiles(nickname)')
+    .eq('session_id',coopSess.id);
+  orgMembers=members||[];
+  await refreshCoopTeams();
+  renderCoopOrgSettingsUI();
+}
+
+function renderCoopOrgSettingsUI(){
+  document.getElementById('coop-org-overlay')?.remove();
+  const overlay=document.createElement('div');
+  overlay.id='coop-org-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+
+  // group members by team_id
+  const byTeam={};
+  coopAllTeams.forEach(t=>{byTeam[t.id]=[];});
+  orgMembers.forEach(m=>{
+    if(m.team_id&&byTeam[m.team_id]) byTeam[m.team_id].push(m);
+  });
+  const unassigned=orgMembers.filter(m=>!m.team_id||!byTeam[m.team_id]);
+
+  const teamsHtml=coopAllTeams.map(t=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">${t.name}
+        <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">${(byTeam[t.id]||[]).length} учасн.</span>
+      </div>
+      <div id="org-team-drop-${t.id}" class="org-drop-zone" data-team="${t.id}"
+        ondragover="event.preventDefault();this.classList.add('drag-over-spot')"
+        ondragleave="this.classList.remove('drag-over-spot')"
+        ondrop="orgDropMember(event,'${t.id}')"
+        style="min-height:44px;border:1px dashed var(--border2);border-radius:6px;padding:6px 8px;display:flex;flex-wrap:wrap;gap:6px;transition:.2s">
+        ${(byTeam[t.id]||[]).map(m=>orgMemberChip(m)).join('')}
+        ${!(byTeam[t.id]||[]).length?`<span style="font-size:11px;color:var(--text3)">порожньо — перетягни учасника</span>`:''}
+      </div>
+    </div>`).join('');
+
+  overlay.innerHTML=`
+    <div id="coop-org-sheet" style="background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:88dvh;display:flex;flex-direction:column;border-top:1px solid var(--border)">
+      <div id="coop-org-handle" style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:14px auto 8px;flex-shrink:0;cursor:grab"></div>
+      <div style="padding:4px 20px 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold2)">⚙ Управління сесією</div>
+        <button onclick="document.getElementById('coop-org-overlay').remove()" style="background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px">×</button>
+      </div>
+      <div style="overflow-y:auto;padding:0 20px 20px;flex:1;min-height:0">
+        <div style="margin-top:14px">
+          <div class="settings-title" style="margin-bottom:6px">Учасники без команди</div>
+          <div id="org-unassigned-drop" class="org-drop-zone" data-team=""
+            ondragover="event.preventDefault();this.classList.add('drag-over-spot')"
+            ondragleave="this.classList.remove('drag-over-spot')"
+            ondrop="orgDropMember(event,'')"
+            style="min-height:44px;border:1px dashed var(--border2);border-radius:6px;padding:6px 8px;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;background:rgba(13,17,23,.4);transition:.2s">
+            ${unassigned.map(m=>orgMemberChip(m)).join('')}
+            ${!unassigned.length?`<span style="font-size:11px;color:var(--text3)">Всі учасники в командах ✓</span>`:''}
+          </div>
+          <div class="settings-title" style="margin-bottom:8px">Команди</div>
+          ${teamsHtml}
+        </div>
+        <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;padding-bottom:8px">Утримуй і перетягуй учасників між командами</div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  // Fix 2: swipe down to close
+  initSheetSwipeDown('coop-org-handle','coop-org-sheet',()=>overlay.remove());
+  // touch drag for member chips
+  overlay.querySelectorAll('[data-member]').forEach(chip=>{
+    chip.addEventListener('touchstart',e=>orgTouchStart(e,chip.dataset.member),{passive:true});
+    chip.addEventListener('touchmove',e=>orgTouchMove(e),{passive:false});
+    chip.addEventListener('touchend',e=>orgTouchEnd(e));
+  });
+}
+
+function orgMemberChip(m){
+  const nick=m.profiles?.nickname||m.user_id.slice(0,8);
+  const isMe=m.user_id===user.id;
+  const cap=m.is_captain?'⭐ ':'';
+  return `<div draggable="true"
+    ondragstart="orgDragStart(event,'${m.id}')"
+    ontouchstart="orgTouchStart(event,'${m.id}')"
+    ontouchmove="orgTouchMove(event)"
+    ontouchend="orgTouchEnd(event)"
+    data-member="${m.id}"
+    style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:${isMe?'rgba(201,168,76,.15)':'var(--surface)'};border:1px solid ${isMe?'rgba(201,168,76,.4)':'var(--border2)'};border-radius:20px;font-size:12px;color:${isMe?'var(--gold)':'var(--text)'};cursor:grab;user-select:none;touch-action:none">
+    ${cap}${nick}${isMe?' (я)':''}
+  </div>`;
+}
+
+let orgDragMemberId=null;
+function orgDragStart(e,memberId){orgDragMemberId=memberId;e.dataTransfer.effectAllowed='move';}
+
+// touch drag для учасників
+let orgTouchMemberId=null,orgTouchClone=null;
+function orgTouchStart(e,memberId){
+  orgTouchMemberId=memberId;orgDragMemberId=memberId;
+  const el=e.currentTarget;
+  const rect=el.getBoundingClientRect();
+  orgTouchClone=el.cloneNode(true);
+  orgTouchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:.85;z-index:99999;pointer-events:none;border-radius:20px`;
+  document.body.appendChild(orgTouchClone);
+  el.style.opacity='.3';
+}
+function orgTouchMove(e){
+  if(!orgTouchClone)return;
+  e.preventDefault();
+  const t=e.touches[0];
+  orgTouchClone.style.left=(t.clientX-50)+'px';
+  orgTouchClone.style.top=(t.clientY-16)+'px';
+  // highlight drop zones
+  document.querySelectorAll('.org-drop-zone').forEach(z=>{
+    const r=z.getBoundingClientRect();
+    z.classList.toggle('drag-over-spot',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom);
+  });
+}
+async function orgTouchEnd(e){
+  if(orgTouchClone){orgTouchClone.remove();orgTouchClone=null;}
+  document.querySelectorAll('[data-member]').forEach(el=>el.style.opacity='');
+  const t=e.changedTouches[0];
+  let dropped=false;
+  document.querySelectorAll('.org-drop-zone').forEach(z=>{
+    const r=z.getBoundingClientRect();
+    if(!dropped&&t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      orgDropMember({preventDefault:()=>{}},z.dataset.team||'');dropped=true;
+    }
+  });
+  document.querySelectorAll('.org-drop-zone').forEach(z=>z.classList.remove('drag-over-spot'));
+}
+
+async function orgDropMember(e,teamId){
+  e.preventDefault();
+  document.querySelectorAll('.org-drop-zone').forEach(z=>z.classList.remove('drag-over-spot'));
+  if(!orgDragMemberId)return;
+  const member=orgMembers.find(m=>m.id===orgDragMemberId);
+  if(!member)return;
+  const newTeamId=teamId||null;
+  if(member.team_id===newTeamId){orgDragMemberId=null;return;}
+  await sb.from('co_members').update({team_id:newTeamId}).eq('id',orgDragMemberId);
+  member.team_id=newTeamId;
+  orgDragMemberId=null;orgTouchMemberId=null;
+  renderCoopOrgSettingsUI();
+  await refreshCoopTeams();
+  renderCoopTabs();
+}
+
+// ── Fix 2: універсальний swipe-down для bottom sheets ──
+function initSheetSwipeDown(handleId,sheetId,onClose){
+  const handle=typeof handleId==='string'?document.getElementById(handleId):handleId;
+  const sheet=typeof sheetId==='string'?document.getElementById(sheetId):sheetId;
+  if(!handle||!sheet)return;
+  let startY=0,isDragging=false;
+  handle.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;isDragging=true;sheet.style.transition='none';},{passive:true});
+  handle.addEventListener('touchmove',e=>{
+    if(!isDragging)return;
+    const dy=Math.max(0,e.touches[0].clientY-startY);
+    sheet.style.transform=`translateY(${dy}px)`;
+  },{passive:true});
+  handle.addEventListener('touchend',e=>{
+    if(!isDragging)return;isDragging=false;
+    const dy=e.changedTouches[0].clientY-startY;
+    sheet.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';
+    if(dy>80){sheet.style.transform=`translateY(100%)`;setTimeout(onClose,300);}
+    else{sheet.style.transform='';}
+  },{passive:true});
+}
+
+// ===== FORGOT PASSWORD =====
+async function doForgotPassword(){
+  const email=document.getElementById('a-email').value.trim();
+  const err=document.getElementById('a-err');
+  err.style.color='var(--red)';
+  if(!email){
+    err.textContent='Введіть email вище';
+    document.getElementById('a-email').focus();
+    return;
+  }
+  const btn=document.getElementById('forgot-btn');
+  btn.disabled=true;btn.textContent='Надсилаємо...';
+  const {error}=await sb.auth.resetPasswordForEmail(email,{
+    redirectTo:window.location.href
+  });
+  btn.disabled=false;btn.textContent='Забули пароль?';
+  if(error){err.textContent='Помилка: '+error.message;return}
+  err.style.color='var(--green)';
+  err.textContent='✓ Лист надіслано — перевірте пошту';
+}
+
+// ===== PASSWORD RECOVERY =====
+function openPasswordRecoveryModal(){
+  document.getElementById('pr-pass').value='';
+  document.getElementById('pr-pass2').value='';
+  document.getElementById('pr-err').textContent='';
+  document.getElementById('pr-btn').disabled=false;
+  document.getElementById('pr-btn').textContent='Зберегти пароль';
+  // показуємо поверх всього, навіть auth screen
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('password-recovery-modal').classList.add('open');
+}
+
+async function saveNewPassword(){
+  const pass=document.getElementById('pr-pass').value;
+  const pass2=document.getElementById('pr-pass2').value;
+  const err=document.getElementById('pr-err');
+  err.textContent='';
+  if(!pass||pass.length<6){err.textContent='Пароль мінімум 6 символів';return}
+  if(pass!==pass2){err.textContent='Паролі не співпадають';return}
+  const btn=document.getElementById('pr-btn');
+  btn.disabled=true;btn.textContent='Збереження...';
+  const {error}=await sb.auth.updateUser({password:pass});
+  btn.disabled=false;btn.textContent='Зберегти пароль';
+  if(error){err.textContent='Помилка: '+error.message;return}
+  document.getElementById('password-recovery-modal').classList.remove('open');
+  toast('✓ Пароль успішно змінено!',3000);
+}
+
+// ============================================================
+// ===== COOP STATISTICS =====
+// ============================================================
+
+function openCoopStats(){
+  const screen=document.getElementById('coop-stats-screen');
+  screen.style.display='flex';
+  renderCoopStats();
+}
+
+function closeCoopStats(){
+  document.getElementById('coop-stats-screen').style.display='none';
+}
+
+function renderCoopStats(){
+  const el=document.getElementById('coop-stats-content');
+  if(!coopAllTeams.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Ще немає команд</div></div>`;
+    return;
+  }
+
+  // ── Збираємо дані для кожної команди ──
+  const TOP_N=5; // топ-5 риб
+  const stats=coopAllTeams.map(team=>{
+    const bites=(coopBitesCache[team.id]||[])
+      .filter(b=>b.weight&&b.weight>0)
+      .map(b=>b.weight)
+      .sort((a,b)=>b-a); // від більшої до меншої
+
+    const bf=bites[0]||0;                        // Big Fish
+    const top5=bites.slice(0,TOP_N);             // топ-5
+    const total=top5.reduce((s,w)=>s+w,0);       // сума топ-5
+    const totalAll=bites.reduce((s,w)=>s+w,0);   // сума всіх
+    const count=bites.length;                     // кількість клювань
+
+    return {team,bf,top5,total,totalAll,count,bites};
+  });
+
+  // ── Ранжування (менший ранг = краще місце) ──
+  const rankBy=(arr,key,asc=false)=>{
+    const sorted=[...arr].sort((a,b)=>asc?a[key]-b[key]:b[key]-a[key]);
+    const ranks={};
+    sorted.forEach((item,i)=>{
+      // однакові значення — однакове місце
+      const prev=i>0?sorted[i-1]:null;
+      ranks[item.team.id]=prev&&prev[key]===item[key]?ranks[prev.team.id]:i+1;
+    });
+    return ranks;
+  };
+
+  const bfRanks=rankBy(stats,'bf');
+  const totalRanks=rankBy(stats,'total');
+
+  // Місця по секторах: сума топ-5 — та ж логіка
+  const sectorRanks=totalRanks; // аналогічно total для топ-5
+
+  // Фінальний бал = місце БФ + місце загальної суми (менше = краще)
+  const finals=stats.map(s=>({
+    team:s.team,
+    bfRank:bfRanks[s.team.id]||coopAllTeams.length,
+    totalRank:totalRanks[s.team.id]||coopAllTeams.length,
+    finalScore:(bfRanks[s.team.id]||coopAllTeams.length)+(totalRanks[s.team.id]||coopAllTeams.length),
+    ...s
+  }));
+  // Фінальне місце: менша сума балів = вище
+  finals.sort((a,b)=>a.finalScore-b.finalScore);
+  const finalRanks={};
+  finals.forEach((f,i)=>{
+    const prev=i>0?finals[i-1]:null;
+    finalRanks[f.team.id]=prev&&prev.finalScore===f.finalScore?finalRanks[prev.team.id]:i+1;
+  });
+
+  const medalEmoji=place=>place===1?'🥇':place===2?'🥈':place===3?'🥉':`${place}.`;
+  const placeColor=place=>place===1?'var(--gold)':place===2?'#8b949e':place===3?'#cd7f32':'var(--text2)';
+
+  // ── Блок 1: Фінальна таблиця ──
+  const finalTableRows=finals.map(f=>`
+    <div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(48,54,61,.5);${finalRanks[f.team.id]===1?'background:rgba(201,168,76,.07)':''}">
+      <div style="font-size:20px;width:32px;flex-shrink:0">${medalEmoji(finalRanks[f.team.id])}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:${placeColor(finalRanks[f.team.id])}">${f.team.name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">БФ: ${f.bf.toFixed(2)} кг · Топ-5: ${f.total.toFixed(2)} кг · ${f.count} клювань</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:${placeColor(finalRanks[f.team.id])}">${f.finalScore}</div>
+        <div style="font-size:10px;color:var(--text3)">балів</div>
+      </div>
+    </div>`).join('');
+
+  // ── Блок 2: Big Fish ──
+  const bfSorted=[...stats].sort((a,b)=>b.bf-a.bf);
+  const bfRows=bfSorted.map((s,i)=>{
+    const rank=bfRanks[s.team.id];
+    return `<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid rgba(48,54,61,.4)">
+      <div style="font-size:16px;width:28px;flex-shrink:0">${medalEmoji(rank)}</div>
+      <div style="flex:1;font-size:13px;color:var(--text)">${s.team.name}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#e05c5c">${s.bf?s.bf.toFixed(2):'—'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-left:4px;align-self:flex-end;padding-bottom:3px">кг</div>
+    </div>`;
+  }).join('');
+
+  // ── Блок 3: Топ-5 риб по командах ──
+  const top5Sorted=[...stats].sort((a,b)=>b.total-a.total);
+  const top5Rows=top5Sorted.map(s=>{
+    const rank=totalRanks[s.team.id];
+    const fishBars=s.top5.map((w,i)=>`
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+        <div style="font-size:10px;color:var(--text3);width:10px">${i+1}</div>
+        <div style="flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;background:${i===0?'linear-gradient(90deg,var(--gold),var(--gold2))':'rgba(201,168,76,.4)'};border-radius:3px;width:${s.bites[0]?Math.round(w/s.bites[0]*100):0}%"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:${i===0?'var(--gold)':'var(--text2)'};width:44px;text-align:right">${w.toFixed(2)}</div>
+      </div>`).join('');
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">${medalEmoji(rank)}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--text)">${s.team.name}</span>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold2)">${s.total.toFixed(2)} кг</div>
+          <div style="font-size:10px;color:var(--text3)">топ-${s.top5.length}</div>
+        </div>
+      </div>
+      ${s.top5.length?fishBars:`<div style="font-size:11px;color:var(--text3)">Клювань ще немає</div>`}
+    </div>`;
+  }).join('');
+
+  // ── Блок 4: Всі клювання (загальна сума) ──
+  const allSorted=[...stats].sort((a,b)=>b.totalAll-a.totalAll);
+  const allRows=allSorted.map((s,i)=>{
+    const maxTotal=allSorted[0].totalAll||1;
+    return `<div style="padding:8px 14px;border-bottom:1px solid rgba(48,54,61,.4)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:13px;color:var(--text)">${s.team.name}</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text)">${s.totalAll.toFixed(2)}</div>
+          <div style="font-size:10px;color:var(--text3)">кг · ${s.count} кл.</div>
+        </div>
+      </div>
+      <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:linear-gradient(90deg,#63b0ff,rgba(99,176,255,.5));border-radius:3px;width:${maxTotal?Math.round(s.totalAll/maxTotal*100):0}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.5px">Оновлюється в реальному часі</div>
+
+    <!-- Фінальна таблиця -->
+    <div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:10px">🏆 Загальний залік</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
+        <div style="padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px">
+          <div style="font-size:10px;color:var(--text3);flex:1">Менша сума балів = вище місце</div>
+          <div style="font-size:10px;color:var(--text3)">місце БФ + місце суми</div>
+        </div>
+        ${finalTableRows}
+      </div>
+    </div>
+
+    <!-- Big Fish -->
+    <div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:10px">🐟 Big Fish</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
+        ${bfRows}
+      </div>
+    </div>
+
+    <!-- Топ-5 -->
+    <div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:10px">📏 Топ-${TOP_N} риб (сума)</div>
+      ${top5Rows}
+    </div>
+
+    <!-- Всього -->
+    <div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:10px">⚖️ Загальна вага всіх клювань</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
+        ${allRows}
+      </div>
+    </div>
+  `;
+}
 
 init();
 </script>
