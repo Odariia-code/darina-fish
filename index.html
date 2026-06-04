@@ -547,7 +547,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);font-size:14px}
 <div class="modal-overlay" id="new-bite-modal">
   <div class="modal" id="new-bite-modal-inner">
     <div class="modal-handle" id="nb-handle" style="cursor:grab;padding:10px 0 6px;margin:0 auto;width:60px;text-align:center"></div>
-    <div class="modal-head"><div class="modal-title">Нова клювання</div></div>
+    <div class="modal-head"><div class="modal-title">Нове клювання</div></div>
     <div class="modal-body">
       <div class="field">
         <label>Вид риби</label>
@@ -2052,7 +2052,7 @@ function openNewBite(){
   document.getElementById('nb-time').value=toLocalDT();
   // reset title/button
   const mt=document.querySelector('#new-bite-modal .modal-title');
-  if(mt)mt.textContent='Нова клювання';
+  if(mt)mt.textContent='Нове клювання';
   const nb=document.getElementById('nb-btn');
   if(nb)nb.textContent='Зберегти клювання';
   // build fish chips from settings
@@ -3502,7 +3502,7 @@ function closeModal(id){
   if(id==='new-bite-modal'){
     editBiteId=null;
     const mt=document.querySelector('#new-bite-modal .modal-title');
-    if(mt)mt.textContent='Нова клювання';
+    if(mt)mt.textContent='Нове клювання';
     const nb=document.getElementById('nb-btn');
     if(nb)nb.textContent='Зберегти клювання';
   }
@@ -5515,7 +5515,7 @@ function openGuestBite(){
   document.getElementById('nb-notes').value='';
   document.getElementById('nb-time').value=toLocalDT();
   const mt=document.querySelector('#new-bite-modal .modal-title');
-  if(mt)mt.textContent='Нова клювання';
+  if(mt)mt.textContent='Нове клювання';
   const nb=document.getElementById('nb-btn');
   if(nb){nb.textContent='Зберегти клювання';nb.dataset.guestMode='1';}
   buildFishChips();
