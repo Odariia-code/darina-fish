@@ -1164,10 +1164,13 @@ async function doAuth(){
   btn.textContent=currentAuthTab==='login'?'Входимо...':'Реєструємо...';
 
   if(currentAuthTab==='signup'){
+    // зберігаємо нікнейм до signUp, щоб onLogin отримав його ще до завершення upsert
+    pendingNick=nick;
     const {data,error}=await sb.auth.signUp({email,password:pass});
     btn.disabled=false;
     btn.textContent='Зареєструватись';
     if(error){
+      pendingNick=null;
       if(error.message.includes('already registered')||error.message.includes('User already registered')){
         errEl.textContent='Цей email вже зареєстровано. Перейди до входу.';
       } else {
@@ -1175,7 +1178,7 @@ async function doAuth(){
       }
       return;
     }
-    // зберігаємо нікнейм
+    // зберігаємо нікнейм в profiles
     if(data?.user){
       await sb.from('profiles').upsert({id:data.user.id,nickname:nick});
     }
@@ -1252,9 +1255,16 @@ async function onLogin(u){
   // показуємо одразу щоб не було вічної загрузки
   document.getElementById('home-content').innerHTML=`<div class="empty-state"><div class="empty-icon">🎣</div><div class="empty-title">Завантаження...</div></div>`;
   try{
-    const {data:profile}=await sb.from('profiles').select('nickname').eq('id',u.id).single();
-    if(profile?.nickname){
-      document.getElementById('header-nick').textContent=profile.nickname;
+    // якщо є pendingNick (реєстрація) — використовуємо одразу, щоб уникнути гонки з upsert
+    const nick=pendingNick||null;
+    pendingNick=null;
+    if(nick){
+      document.getElementById('header-nick').textContent=nick;
+    } else {
+      const {data:profile}=await sb.from('profiles').select('nickname').eq('id',u.id).single();
+      if(profile?.nickname){
+        document.getElementById('header-nick').textContent=profile.nickname;
+      }
     }
   }catch(e){}
   try{await loadSettings();}catch(e){console.log('settings err',e)}
